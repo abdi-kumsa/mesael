@@ -33,7 +33,7 @@ export const DocumentGateModal: React.FC<DocumentGateModalProps> = ({
   const { data: subData } = useSWR('/api/subcontracts', (url: string) => fetch(url).then(res => res.json()));
   const subcontracts = subData?.data || [];
   // Flatten IPCs
-  const allIpcs = subcontracts.flatMap((s: any) => s.ipcs.map((ipc: any) => ({
+  const allIpcs = subcontracts.flatMap((s: any) => (s.ipcs || []).map((ipc: any) => ({
     ...ipc,
     vendorName: s.vendorName,
     projectCode: s.projectCode,

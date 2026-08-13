@@ -45,6 +45,7 @@ export async function GET(request: Request) {
         unrecoveredAdvance: s.advancePaid - totalAdvanceRecovered,
         netPaidOut,
         createdAt: s.createdAt.toISOString().split('T')[0],
+        ipcs: s.ipcs || [],
       };
     });
 
