@@ -47,29 +47,22 @@ var adapter = new adapter_pg_1.PrismaPg({ connectionString: process.env.DATABASE
 var prisma = new client_1.PrismaClient({ adapter: adapter });
 function main() {
     return __awaiter(this, void 0, void 0, function () {
-        var passwordOwner, passwordDgm, passwordFinance, passwordAccountant, passwordTax, mesael, dembi, leta, kalkidan, yamrot, boleProject, cmcProject, cc2201, cc4102;
+        var universalPassword, passwordOwner, passwordDgm, passwordFinance, passwordAccountant, passwordTax, mesael, dembi, leta, kalkidan, yamrot, firehiwot, samuel, john, admin, boleProject, cmcProject, cc2201, cc4102, supplier1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     console.log('Seeding initial enterprise data...');
-                    return [4 /*yield*/, bcryptjs_1.default.hash('owner123', 10)];
+                    return [4 /*yield*/, bcryptjs_1.default.hash('1234', 10)];
                 case 1:
-                    passwordOwner = _a.sent();
-                    return [4 /*yield*/, bcryptjs_1.default.hash('dgm123', 10)];
-                case 2:
-                    passwordDgm = _a.sent();
-                    return [4 /*yield*/, bcryptjs_1.default.hash('finance123', 10)];
-                case 3:
-                    passwordFinance = _a.sent();
-                    return [4 /*yield*/, bcryptjs_1.default.hash('accountant123', 10)];
-                case 4:
-                    passwordAccountant = _a.sent();
-                    return [4 /*yield*/, bcryptjs_1.default.hash('tax123', 10)];
-                case 5:
-                    passwordTax = _a.sent();
+                    universalPassword = _a.sent();
+                    passwordOwner = universalPassword;
+                    passwordDgm = universalPassword;
+                    passwordFinance = universalPassword;
+                    passwordAccountant = universalPassword;
+                    passwordTax = universalPassword;
                     return [4 /*yield*/, prisma.user.upsert({
                             where: { email: 'mesael@mesael.et' },
-                            update: {},
+                            update: { password: passwordOwner },
                             create: {
                                 email: 'mesael@mesael.et',
                                 name: 'Mesael',
@@ -79,11 +72,11 @@ function main() {
                                 password: passwordOwner,
                             },
                         })];
-                case 6:
+                case 2:
                     mesael = _a.sent();
                     return [4 /*yield*/, prisma.user.upsert({
                             where: { email: 'dembi@mesael.et' },
-                            update: {},
+                            update: { password: passwordDgm },
                             create: {
                                 email: 'dembi@mesael.et',
                                 name: 'Dembi',
@@ -93,11 +86,11 @@ function main() {
                                 password: passwordDgm,
                             },
                         })];
-                case 7:
+                case 3:
                     dembi = _a.sent();
                     return [4 /*yield*/, prisma.user.upsert({
                             where: { email: 'leta@mesael.et' },
-                            update: {},
+                            update: { password: passwordFinance },
                             create: {
                                 email: 'leta@mesael.et',
                                 name: 'Leta',
@@ -107,11 +100,11 @@ function main() {
                                 password: passwordFinance,
                             },
                         })];
-                case 8:
+                case 4:
                     leta = _a.sent();
                     return [4 /*yield*/, prisma.user.upsert({
                             where: { email: 'kalkidan@mesael.et' },
-                            update: {},
+                            update: { password: passwordAccountant },
                             create: {
                                 email: 'kalkidan@mesael.et',
                                 name: 'Kalkidan',
@@ -121,11 +114,11 @@ function main() {
                                 password: passwordAccountant,
                             },
                         })];
-                case 9:
+                case 5:
                     kalkidan = _a.sent();
                     return [4 /*yield*/, prisma.user.upsert({
                             where: { email: 'yamrot@mesael.et' },
-                            update: {},
+                            update: { password: passwordTax },
                             create: {
                                 email: 'yamrot@mesael.et',
                                 name: 'Yamrot Tufa',
@@ -135,8 +128,64 @@ function main() {
                                 password: passwordTax,
                             },
                         })];
-                case 10:
+                case 6:
                     yamrot = _a.sent();
+                    return [4 /*yield*/, prisma.user.upsert({
+                            where: { email: 'firehiwot@mesael.et' },
+                            update: { password: universalPassword },
+                            create: {
+                                email: 'firehiwot@mesael.et',
+                                name: 'Firehiwot',
+                                roleId: 'firehiwot',
+                                title: 'Office Engineer',
+                                avatar: 'FH',
+                                password: universalPassword,
+                            },
+                        })];
+                case 7:
+                    firehiwot = _a.sent();
+                    return [4 /*yield*/, prisma.user.upsert({
+                            where: { email: 'samuel@mesael.et' },
+                            update: { password: universalPassword },
+                            create: {
+                                email: 'samuel@mesael.et',
+                                name: 'Samuel',
+                                roleId: 'samuel',
+                                title: 'Purchaser',
+                                avatar: 'SM',
+                                password: universalPassword,
+                            },
+                        })];
+                case 8:
+                    samuel = _a.sent();
+                    return [4 /*yield*/, prisma.user.upsert({
+                            where: { email: 'john@mesael.et' },
+                            update: { password: universalPassword },
+                            create: {
+                                email: 'john@mesael.et',
+                                name: 'John',
+                                roleId: 'john',
+                                title: 'Site Engineer',
+                                avatar: 'JH',
+                                password: universalPassword,
+                            },
+                        })];
+                case 9:
+                    john = _a.sent();
+                    return [4 /*yield*/, prisma.user.upsert({
+                            where: { email: 'admin@mesael.et' },
+                            update: { password: universalPassword },
+                            create: {
+                                email: 'admin@mesael.et',
+                                name: 'System Admin',
+                                roleId: 'admin',
+                                title: 'IT Administrator',
+                                avatar: 'IT',
+                                password: universalPassword,
+                            },
+                        })];
+                case 10:
+                    admin = _a.sent();
                     return [4 /*yield*/, prisma.project.upsert({
                             where: { code: 'PRJ-BOLE' },
                             update: {},
@@ -185,6 +234,19 @@ function main() {
                         })];
                 case 14:
                     cc4102 = _a.sent();
+                    return [4 /*yield*/, prisma.supplier.upsert({
+                            where: { tin: '0012938475' },
+                            update: {},
+                            create: {
+                                legalName: 'Abyssinia Steel PLC',
+                                tin: '0012938475',
+                                vatStatus: 'REGISTERED',
+                                bankDetails: JSON.stringify({ bank: 'CBE', account: '1000123456789' }),
+                                status: 'APPROVED'
+                            }
+                        })];
+                case 15:
+                    supplier1 = _a.sent();
                     console.log('Seeding completed successfully!');
                     return [2 /*return*/];
             }
