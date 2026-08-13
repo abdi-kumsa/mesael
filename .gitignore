@@ -8,3 +8,16 @@ node_modules
 out/
 build/
 .vercel
+tsconfig.tsbuildinfo
+
+# IDE & Agent folders
+.agents/
+.claude/
+.windsurf/
+skills-lock.json
+
+# Design Assets & Docs
+Assets/
+docs/
+*.md
+*.html
