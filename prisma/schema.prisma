@@ -1,0 +1,676 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                String          @id @default(uuid())
+  email             String          @unique
+  name              String
+  roleId            String
+  title             String
+  avatar            String
+  password          String
+  vouchers          Voucher[]       @relation("VoucherPreparer")
+  approvals         Voucher[]       @relation("VoucherApprover")
+  releasedVouchers  Voucher[]       @relation("VoucherReleaser")
+  auditLogs         AuditLog[]
+  pettyCashTx       PettyCashTransaction[]
+  certifiedHourLogs RentalHourLog[] @relation("RentalCertifier")
+  requisitions      PurchaseRequisition[] @relation("RequisitionPreparer")
+  purchaseOrders    PurchaseOrder[]       @relation("POPreparer")
+  grns              GoodsReceivingNote[]  @relation("GRNReceiver")
+  subcontracts      Subcontract[]         @relation("SubcontractPreparer")
+  ipcs              PaymentCertificate[]  @relation("IPCCertifier")
+  clientContracts   ClientContract[]      @relation("ClientContractPreparer")
+  clientInvoices    ClientInvoice[]       @relation("ClientInvoicePreparer")
+  taxReceipts       TaxReceipt[]          @relation("TaxReceiptIssuer")
+  collections       Collection[]          @relation("CollectionLogger")
+  journalEntries    JournalEntry[]        @relation("JournalPreparer")
+  reconciliations   BankReconciliation[]  @relation("Reconciler")
+  ownerTransactions OwnerTransaction[]    @relation("OwnerTxClassifier")
+  timesheets        Timesheet[]           @relation("TimesheetCertifier")
+  approvedPayrolls  PayrollRun[]          @relation("PayrollApprover")
+  clearedLiabilities StatutoryLiability[] @relation("LiabilityClearer")
+  delegationsMade   ApprovalDelegation[]  @relation("Delegator")
+  delegationsReceived ApprovalDelegation[] @relation("Delegatee")
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+}
+
+model Project {
+  id               String            @id @default(uuid())
+  code             String            @unique
+  name             String
+  client           String
+  status           String            @default("ACTIVE")
+  costCodes        CostCode[]
+  vouchers         Voucher[]
+  rentalAgreements RentalAgreement[]
+  pettyCashTx      PettyCashTransaction[]
+  requisitions     PurchaseRequisition[]
+  subcontracts     Subcontract[]
+  clientContracts  ClientContract[]
+  ledgerLines      LedgerLine[]
+  employees        Employee[]        @relation("ProjectEmployees")
+  timesheets       Timesheet[]       @relation("ProjectTimesheets")
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+}
+
+model BankAccount {
+  id             String   @id @default(uuid())
+  bankName       String
+  accountName    String
+  accountNumber  String   @unique
+  currency       String   @default("ETB")
+  purpose        String   // e.g. Operational, Payroll, Guarantee Margin
+  signatories    String   // e.g. Mesael, Dembi
+  mandateRule    String   // e.g. Single, Any Two
+  balance        Float    @default(0) // Book balance
+  vouchers       Voucher[]
+  chequeBooks    ChequeBook[]
+  reconciliations BankReconciliation[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model BankReconciliation {
+  id             String   @id @default(uuid())
+  accountId      String
+  account        BankAccount @relation(fields: [accountId], references: [id])
+  periodEnd      DateTime
+  statementBal   Float
+  systemBal      Float
+  variance       Float
+  status         String   @default("DRAFT") // DRAFT, RECONCILED
+  reconciledById String
+  reconciler     User     @relation("Reconciler", fields: [reconciledById], references: [id])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model OwnerTransaction {
+  id             String   @id @default(uuid())
+  type           String   // INJECTION, DRAWING, BUSINESS_PAID_BY_OWNER, OWNER_COST_PAID_BY_BUSINESS
+  amount         Float
+  description    String
+  date           DateTime
+  classifiedById String
+  classifier     User     @relation("OwnerTxClassifier", fields: [classifiedById], references: [id])
+  createdAt      DateTime @default(now())
+}
+
+model CostCode {
+  id            String    @id @default(uuid())
+  code          String    @unique // e.g. CC-2201
+  name          String
+  projectId     String
+  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  budget        Float     @default(0)
+  committed     Float     @default(0)
+  vouchers      Voucher[]
+  requisitions  PurchaseRequisition[]
+  subcontracts  Subcontract[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Voucher {
+  id               String    @id @default(uuid())
+  code             String    @unique // e.g. PV-2026-00491
+  title            String
+  amount           Float
+  payee            String
+  method           String
+  status           String    @default("pending_docs") // pending_docs, ready_for_approval, owner_reserved, approved, declined, paid
+  
+  projectId        String
+  project          Project   @relation(fields: [projectId], references: [id])
+  costCodeId       String
+  costCode         CostCode  @relation(fields: [costCodeId], references: [id])
+  
+  preparedById     String
+  preparedBy       User      @relation("VoucherPreparer", fields: [preparedById], references: [id])
+  
+  assignedApproverId String?
+  assignedApprover   User?    @relation("VoucherApprover", fields: [assignedApproverId], references: [id])
+  
+  releasedById       String?
+  releasedBy         User?    @relation("VoucherReleaser", fields: [releasedById], references: [id])
+  
+  bankAccountId      String?
+  bankAccount        BankAccount? @relation(fields: [bankAccountId], references: [id])
+  bankReference      String?
+
+  docsAttached     String? // JSON string representing attached doc types
+  
+  purchaseOrderId  String?
+  purchaseOrder    PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id])
+
+  ipcId            String?
+  ipc              PaymentCertificate? @relation(fields: [ipcId], references: [id])
+  
+  chequeLeaf       ChequeLeaf?
+
+  attachments      DocumentAttachment[]
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  action    String
+  details   String
+  ipAddress String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model RentalAgreement {
+  id               String          @id @default(uuid())
+  equipmentName    String
+  vendorName       String
+  hourlyRate       Float
+  advancePaid      Float           @default(0)
+  totalHoursBilled Float           @default(0)
+  projectId        String
+  project          Project         @relation(fields: [projectId], references: [id])
+  status           String          @default("ACTIVE") // ACTIVE, RECONCILED, CLOSED
+  hourLogs         RentalHourLog[]
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+}
+
+model RentalHourLog {
+  id                String          @id @default(uuid())
+  rentalAgreementId String
+  rentalAgreement   RentalAgreement @relation(fields: [rentalAgreementId], references: [id], onDelete: Cascade)
+  logDate           DateTime
+  hoursWorked       Float
+  certifiedById     String?
+  certifiedBy       User?           @relation("RentalCertifier", fields: [certifiedById], references: [id])
+  createdAt         DateTime        @default(now())
+}
+
+
+model PettyCashTransaction {
+  id              String   @id @default(uuid())
+  date            DateTime @default(now())
+  description     String
+  amount          Float
+  type            String   // 'IN' for replenishment, 'OUT' for expense
+  balance         Float
+  receiptAttached String?  // Optional URL to uploaded receipt
+
+  project         Project  @relation(fields: [projectId], references: [id])
+  projectId       String
+
+  loggedBy        User     @relation(fields: [loggedById], references: [id])
+  loggedById      String
+}
+
+// ================= P2P Module =================
+
+model Supplier {
+  id              String          @id @default(uuid())
+  legalName       String
+  tin             String          @unique
+  vatStatus       String          @default("REGISTERED") // REGISTERED, UNREGISTERED
+  bankDetails     String?         // JSON string storing bank info
+  status          String          @default("APPROVED") // APPROVED, BLOCKED
+  purchaseOrders  PurchaseOrder[]
+  subcontracts    Subcontract[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model PurchaseRequisition {
+  id              String          @id @default(uuid())
+  code            String          @unique // e.g. PR-2026-0001
+  description     String
+  status          String          @default("PENDING") // PENDING, APPROVED, REJECTED, ORDERED
+  
+  projectId       String
+  project         Project         @relation(fields: [projectId], references: [id])
+  costCodeId      String
+  costCode        CostCode        @relation(fields: [costCodeId], references: [id])
+  
+  preparedById    String
+  preparedBy      User            @relation("RequisitionPreparer", fields: [preparedById], references: [id])
+  
+  items           RequisitionItem[]
+  purchaseOrders  PurchaseOrder[]
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model RequisitionItem {
+  id              String               @id @default(uuid())
+  requisitionId   String
+  requisition     PurchaseRequisition  @relation(fields: [requisitionId], references: [id], onDelete: Cascade)
+  description     String
+  quantity        Float
+  unit            String
+}
+
+model PurchaseOrder {
+  id              String               @id @default(uuid())
+  code            String               @unique // e.g. PO-2026-0001
+  status          String               @default("ISSUED") // ISSUED, PARTIAL_RECEIVED, RECEIVED, INVOICED, CLOSED
+  
+  requisitionId   String
+  requisition     PurchaseRequisition  @relation(fields: [requisitionId], references: [id])
+  
+  supplierId      String
+  supplier        Supplier             @relation(fields: [supplierId], references: [id])
+  
+  preparedById    String
+  preparedBy      User                 @relation("POPreparer", fields: [preparedById], references: [id])
+  
+  items           OrderItem[]
+  grns            GoodsReceivingNote[]
+  vouchers        Voucher[]
+
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+}
+
+model OrderItem {
+  id              String         @id @default(uuid())
+  orderId         String
+  order           PurchaseOrder  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  description     String
+  quantity        Float
+  unitPrice       Float
+  unit            String
+  grnItems        GRNItem[]
+}
+
+model GoodsReceivingNote {
+  id              String         @id @default(uuid())
+  code            String         @unique // e.g. GRN-2026-0001
+  
+  orderId         String
+  order           PurchaseOrder  @relation(fields: [orderId], references: [id])
+  
+  receivedById    String
+  receivedBy      User           @relation("GRNReceiver", fields: [receivedById], references: [id])
+  
+  items           GRNItem[]
+
+  createdAt       DateTime       @default(now())
+}
+
+model GRNItem {
+  id               String               @id @default(uuid())
+  grnId            String
+  grn              GoodsReceivingNote   @relation(fields: [grnId], references: [id], onDelete: Cascade)
+  orderItemId      String
+  orderItem        OrderItem            @relation(fields: [orderItemId], references: [id])
+  quantityReceived Float
+  condition        String               @default("GOOD") // GOOD, DAMAGED, REJECTED
+}
+
+// ================= Subcontracts Module =================
+
+model Subcontract {
+  id              String               @id @default(uuid())
+  code            String               @unique // e.g. SUB-2026-0001
+  status          String               @default("ACTIVE") // ACTIVE, COMPLETED, CANCELLED
+  
+  vendorId        String
+  vendor          Supplier             @relation(fields: [vendorId], references: [id])
+  
+  projectId       String
+  project         Project              @relation(fields: [projectId], references: [id])
+  costCodeId      String
+  costCode        CostCode             @relation(fields: [costCodeId], references: [id])
+  
+  preparedById    String
+  preparedBy      User                 @relation("SubcontractPreparer", fields: [preparedById], references: [id])
+  
+  contractValue   Float
+  advancePercent  Float
+  retentionPercent Float
+  advancePaid     Float                @default(0)
+  
+  ipcs            PaymentCertificate[]
+  
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+}
+
+model PaymentCertificate {
+  id                 String       @id @default(uuid())
+  code               String       @unique // e.g. IPC-2026-0001
+  status             String       @default("CERTIFIED") // CERTIFIED, PAID
+  
+  subcontractId      String
+  subcontract        Subcontract  @relation(fields: [subcontractId], references: [id])
+  
+  cycleNumber        Int
+  
+  grossAmount        Float        // Value of work certified
+  advanceDeduction   Float        // Amount recovered against advance
+  retentionDeduction Float        // Amount retained
+  netAmount          Float        // Final amount payable
+  
+  certifiedById      String
+  certifiedBy        User         @relation("IPCCertifier", fields: [certifiedById], references: [id])
+  
+  vouchers           Voucher[]
+  
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+}
+
+// ================= Order to Cash Module =================
+
+model Client {
+  id              String           @id @default(uuid())
+  legalName       String
+  tin             String           @unique
+  contactPerson   String?
+  status          String           @default("ACTIVE")
+  contracts       ClientContract[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+model ClientContract {
+  id               String          @id @default(uuid())
+  code             String          @unique // e.g. CON-2026-0001
+  
+  clientId         String
+  client           Client          @relation(fields: [clientId], references: [id])
+  
+  projectId        String
+  project          Project         @relation(fields: [projectId], references: [id])
+  
+  contractValue    Float
+  advancePercent   Float
+  retentionPercent Float
+  status           String          @default("ACTIVE")
+  
+  preparedById     String
+  preparedBy       User            @relation("ClientContractPreparer", fields: [preparedById], references: [id])
+  
+  invoices         ClientInvoice[]
+  
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+}
+
+model ClientInvoice {
+  id                 String          @id @default(uuid())
+  code               String          @unique // e.g. INV-2026-0001
+  status             String          @default("RAISED") // RAISED, RECEIPTED, PARTIAL_COLLECTED, COLLECTED
+  
+  contractId         String
+  contract           ClientContract  @relation(fields: [contractId], references: [id])
+  
+  milestoneName      String
+  
+  grossAmount        Float
+  advanceDeduction   Float
+  retentionDeduction Float
+  netAmount          Float
+  vatAmount          Float
+  totalPayable       Float
+  
+  preparedById       String
+  preparedBy         User            @relation("ClientInvoicePreparer", fields: [preparedById], references: [id])
+  
+  taxReceipts        TaxReceipt[]
+  collections        Collection[]
+  
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+}
+
+model TaxReceipt {
+  id                 String          @id @default(uuid())
+  receiptNumber      String          @unique // Physical FS number
+  
+  invoiceId          String
+  invoice            ClientInvoice   @relation(fields: [invoiceId], references: [id])
+  
+  issuedById         String
+  issuedBy           User            @relation("TaxReceiptIssuer", fields: [issuedById], references: [id])
+  
+  dispatchedAt       DateTime?
+  custodyTracker     String?         // Who took it
+  
+  createdAt          DateTime        @default(now())
+}
+
+model Collection {
+  id                  String          @id @default(uuid())
+  
+  invoiceId           String
+  invoice             ClientInvoice   @relation(fields: [invoiceId], references: [id])
+  
+  amountReceived      Float
+  withholdingSuffered Float
+  bankReference       String?
+  
+  loggedById          String
+  loggedBy            User            @relation("CollectionLogger", fields: [loggedById], references: [id])
+  
+  createdAt           DateTime        @default(now())
+}
+
+// ================= General Ledger & Reporting Module =================
+
+model ChartOfAccount {
+  id          String        @id @default(uuid())
+  code        String        @unique // e.g. 1001
+  name        String
+  type        String        // ASSET, LIABILITY, EQUITY, REVENUE, EXPENSE
+  lines       LedgerLine[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model JournalEntry {
+  id          String        @id @default(uuid())
+  code        String        @unique // e.g. JV-2026-0001
+  date        DateTime      @default(now())
+  description String
+  referenceId String?       // Optional link back to a voucher, invoice, etc.
+  status      String        @default("POSTED") // POSTED, VOIDED
+  
+  preparedById String
+  preparedBy   User         @relation("JournalPreparer", fields: [preparedById], references: [id])
+  
+  lines       LedgerLine[]
+  
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model LedgerLine {
+  id           String         @id @default(uuid())
+  
+  journalId    String
+  journal      JournalEntry   @relation(fields: [journalId], references: [id], onDelete: Cascade)
+  
+  accountId    String
+  account      ChartOfAccount @relation(fields: [accountId], references: [id])
+  
+  projectId    String?
+  project      Project?       @relation(fields: [projectId], references: [id])
+  
+  debit        Float          @default(0)
+  credit       Float          @default(0)
+  
+  createdAt    DateTime       @default(now())
+}
+
+// ================= Tax & Statutory (FIN-TAX) Module =================
+
+model ComplianceCertificate {
+  id           String         @id @default(uuid())
+  type         String         // VAT Registration, Tax Clearance, Contractor Licence
+  issueDate    DateTime
+  expiryDate   DateTime?      // Optional for things like VAT which have no expiry
+  status       String         @default("ACTIVE") // ACTIVE, EXPIRED
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+// ================= Payroll (FIN-PAY) Module =================
+
+model Employee {
+  id             String      @id @default(uuid())
+  name           String
+  tin            String?
+  pensionNumber  String?
+  bankName       String?
+  bankAccount    String?
+  type           String      // PERMANENT, CONTRACT, DAILY
+  status         String      @default("ACTIVE") // ACTIVE, TERMINATED
+  basicSalary    Float
+  transportAllowance Float   @default(0)
+  housingAllowance   Float   @default(0)
+  defaultProjectId String?
+  project        Project?    @relation("ProjectEmployees", fields: [defaultProjectId], references: [id])
+  timesheets     Timesheet[]
+  payslips       Payslip[]
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+}
+
+model Timesheet {
+  id             String      @id @default(uuid())
+  employeeId     String
+  employee       Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  projectId      String
+  project        Project     @relation("ProjectTimesheets", fields: [projectId], references: [id])
+  date           DateTime
+  hoursWorked    Float
+  overtimeHours  Float       @default(0)
+  status         String      @default("DRAFT") // DRAFT, CERTIFIED
+  certifiedById  String?
+  certifier      User?       @relation("TimesheetCertifier", fields: [certifiedById], references: [id])
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+}
+
+model PayrollRun {
+  id             String      @id @default(uuid())
+  periodMonth    Int         // 1-12
+  periodYear     Int
+  status         String      @default("DRAFT") // DRAFT, APPROVED, LOCKED
+  totalGross     Float       @default(0)
+  totalNet       Float       @default(0)
+  totalTax       Float       @default(0)
+  totalPension   Float       @default(0)
+  approvedById   String?
+  approver       User?       @relation("PayrollApprover", fields: [approvedById], references: [id])
+  payslips       Payslip[]
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+}
+
+model Payslip {
+  id             String      @id @default(uuid())
+  runId          String
+  run            PayrollRun  @relation(fields: [runId], references: [id], onDelete: Cascade)
+  employeeId     String
+  employee       Employee    @relation(fields: [employeeId], references: [id])
+  basic          Float
+  taxableAllowance Float
+  nonTaxableAllowance Float
+  gross          Float
+  incomeTax      Float
+  employeePension Float
+  employerPension Float
+  netPay         Float
+  createdAt      DateTime    @default(now())
+}
+
+model StatutoryLiability {
+  id             String      @id @default(uuid())
+  type           String      // INCOME_TAX, PENSION
+  periodMonth    Int
+  periodYear     Int
+  amount         Float
+  status         String      @default("UNPAID") // UNPAID, PAID
+  dueDate        DateTime
+  paymentRef     String?
+  clearedById    String?
+  clearer        User?       @relation("LiabilityClearer", fields: [clearedById], references: [id])
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+}
+
+// ================= Governance & Docs (Phase 2) =================
+
+model ApprovalDelegation {
+  id             String    @id @default(uuid())
+  delegatorId    String
+  delegator      User      @relation("Delegator", fields: [delegatorId], references: [id])
+  delegateeId    String
+  delegatee      User      @relation("Delegatee", fields: [delegateeId], references: [id])
+  startDate      DateTime
+  endDate        DateTime
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model DocumentAttachment {
+  id             String    @id @default(uuid())
+  fileName       String
+  url            String
+  type           String    // INVOICE, PO, GRN, TAX, etc.
+  voucherId      String
+  voucher        Voucher   @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+  version        Int       @default(1)
+  isActive       Boolean   @default(true)
+  previousVersionId String?
+  uploadedAt     DateTime  @default(now())
+}
+
+model ChequeBook {
+  id             String       @id @default(uuid())
+  bankAccountId  String
+  bankAccount    BankAccount  @relation(fields: [bankAccountId], references: [id])
+  startNumber    String
+  endNumber      String
+  isActive       Boolean      @default(true)
+  leaves         ChequeLeaf[]
+  createdAt      DateTime     @default(now())
+}
+
+model ChequeLeaf {
+  id             String      @id @default(uuid())
+  chequeBookId   String
+  chequeBook     ChequeBook  @relation(fields: [chequeBookId], references: [id], onDelete: Cascade)
+  chequeNumber   String
+  status         String      @default("BLANK") // BLANK, ISSUED, VOID, CLEARED
+  issuedTo       String?
+  voucherId      String?     @unique
+  voucher        Voucher?    @relation(fields: [voucherId], references: [id])
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+}
+
+model ApprovalRule {
+  id               String    @id @default(uuid())
+  roleId           String    @unique // e.g., 'dembi'
+  maxAmount        Float     // e.g., 500000
+  escalationRoleId String    // e.g., 'mesael'
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+

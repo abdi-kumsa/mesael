@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mesael — Finance, Accounting &amp; Tax</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,420;9..144,520;9..144,620&family=Inter:wght@400;500;560;650;750&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   Mesael — Finance, Accounting & Tax
+   Each role signs into its own workspace. One primary task per
+   screen, a short stat line for context, generous quiet space
+   around both. Nothing decorative, nothing duplicated.
+   ============================================================ */
+:root{
+  --ink:#15181e; --ink-2:#454e5a; --muted:#7b8492;
+  --line:#e5e9ee; --line-2:#eef1f5; --bg:#fbfaf8; --surface:#ffffff;
+  --accent:#c1540f; --accent-ink:#8f3d0b; --accent-tint:#fdf1e7; --accent-line:#f3d3b3;
+  --good:#1a7a5c; --good-tint:#e9f5f0; --good-line:#bfe3d4;
+  --warn:#b4550b; --warn-tint:#fdf1e7; --warn-line:#f3d3b3;
+  --bad:#b23a24; --bad-tint:#fbebe7; --bad-line:#f0c3b6;
+  --radius:18px; --radius-sm:11px;
+  --shadow:0 1px 1px rgba(21,24,30,.03), 0 8px 20px rgba(21,24,30,.05);
+  --serif:"Fraunces",Georgia,serif;
+  --sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Consolas,monospace;
+  --sidebar-w:236px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:var(--sans);color:var(--ink);background:var(--bg);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{margin:0;line-height:1.15}
+p{margin:0}
+::selection{background:var(--accent-line);color:var(--accent-ink)}
+button{font-family:inherit}
+.mono{font-family:var(--mono)}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+svg{display:block}
+a{color:var(--accent)}
+
+/* ---------------- topbar ---------------- */
+.topbar{
+  position:sticky;top:0;z-index:110;height:58px;display:flex;align-items:center;gap:14px;padding:0 20px;
+  background:rgba(251,250,248,.92);backdrop-filter:saturate(1.3) blur(8px);border-bottom:1px solid var(--line);
+}
+.mark{width:30px;height:30px;border-radius:8px;background:var(--ink);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mark span{font-family:var(--serif);font-weight:560;font-size:15px;color:#F2A448}
+.brandtext .name{font-weight:700;font-size:14px;letter-spacing:-.01em}
+.brandtext .sub{font-size:10px;color:var(--muted);letter-spacing:.04em;margin-top:-1px}
+.hamburger{display:none;width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--surface);align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:var(--ink-2)}
+.hamburger svg{width:16px;height:16px}
+@media(max-width:900px){.hamburger{display:flex}}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+
+.who{position:relative;cursor:pointer;background:none;border:0;font:inherit;color:inherit;display:flex;align-items:center;gap:9px}
+.who:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:8px}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--ink);color:#F2A448;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;flex-shrink:0}
+.who .name{font-size:13px;font-weight:650}
+.who .role{font-size:10.5px;color:var(--muted);margin-top:-1px}
+.who .chev{width:13px;height:13px;color:var(--muted);transition:transform .15s}
+.who[aria-expanded="true"] .chev{transform:rotate(180deg)}
+@media(max-width:480px){.who .name,.who .role{display:none}}
+
+.role-menu{position:absolute;top:calc(100% + 10px);right:0;width:270px;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:7px;z-index:130;display:none;text-align:left}
+.role-menu.on{display:block}
+.role-menu .rm-h{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);padding:9px 10px 5px}
+.role-item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:9px 10px;border-radius:10px;border:0;background:none;cursor:pointer;font:inherit}
+.role-item:hover{background:var(--accent-tint)}
+.role-item.active{background:var(--ink)}
+.role-item.active .r-name,.role-item.active .r-role{color:#fff}
+.role-item .r-av{width:26px;height:26px;border-radius:50%;background:var(--line-2);color:var(--ink-2);display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;flex-shrink:0}
+.role-item.active .r-av{background:#F2A448;color:var(--ink)}
+.role-item .r-name{font-size:12.5px;font-weight:650;color:var(--ink)}
+.role-item .r-role{font-size:10.5px;color:var(--muted);margin-top:1px}
+
+/* ---------------- shell ---------------- */
+.app{display:flex;align-items:flex-start}
+.sidebar{width:var(--sidebar-w);flex-shrink:0;position:sticky;top:58px;height:calc(100vh - 58px);background:var(--surface);border-right:1px solid var(--line);display:flex;flex-direction:column;z-index:90}
+.side-role{padding:22px 20px 16px}
+.side-role .rname{font-family:var(--serif);font-size:20px;font-weight:560}
+.side-tag{display:inline-flex;margin-top:8px;font-size:10.5px;font-weight:650;color:var(--accent-ink);background:var(--accent-tint);border:1px solid var(--accent-line);border-radius:20px;padding:3px 10px}
+.side-nav{display:none;flex-direction:column;padding:8px 12px;gap:1px;flex:1}
+.side-nav.on{display:flex}
+.navbtn{display:flex;align-items:center;gap:11px;width:100%;text-align:left;font:inherit;font-size:13.5px;font-weight:600;color:var(--ink-2);background:none;border:0;border-radius:10px;padding:11px 12px;cursor:pointer;transition:background .12s,color .12s}
+.navbtn:hover{background:var(--line-2)}
+.navbtn.on{background:var(--accent-tint);color:var(--accent-ink)}
+.navbtn .ic{width:17px;height:17px;flex-shrink:0;opacity:.75}
+.navbtn.on .ic{opacity:1}
+.navbtn .dot{margin-left:auto;width:7px;height:7px;border-radius:50%;background:var(--accent)}
+.side-foot{padding:16px 20px 20px;font-size:11px;color:var(--muted);line-height:1.5;border-top:1px solid var(--line-2);margin-top:auto}
+
+.main{flex:1;min-width:0}
+.stage{max-width:900px;margin:0 auto;padding:44px 32px 100px}
+@media(max-width:900px){
+  .sidebar{position:fixed;top:0;left:0;bottom:0;height:100vh;transform:translateX(-100%);transition:transform .2s ease;padding-top:58px}
+  .sidebar.open{transform:none;box-shadow:16px 0 32px rgba(21,24,30,.16)}
+  .sidebar-scrim{display:none;position:fixed;inset:0;background:rgba(21,24,30,.4);z-index:85}
+  .sidebar-scrim.on{display:block}
+  .stage{padding:28px 18px 90px}
+}
+
+.page{display:none}
+.page.on{display:block;animation:fade .22s ease}
+@keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+/* ---------------- page head ---------------- */
+.head{margin-bottom:30px}
+.head .eyebrow{font-size:11px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.head h1{font-family:var(--serif);font-size:30px;font-weight:560;letter-spacing:-.01em;margin-top:6px}
+.head p{font-size:14px;color:var(--muted);margin-top:8px;max-width:52ch}
+.head-row{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap}
+
+.btn{font:inherit;font-size:13px;font-weight:650;border-radius:10px;padding:10px 16px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);display:inline-flex;align-items:center;gap:8px;transition:border-color .13s,background .13s,color .13s}
+.btn:hover{border-color:var(--ink);color:var(--ink)}
+.btn.primary{background:var(--ink);border-color:var(--ink);color:#fff}
+.btn.primary:hover{background:var(--accent-ink);border-color:var(--accent-ink)}
+.btn.text{border-color:transparent;background:none;padding:8px 4px;color:var(--accent)}
+.btn.text:hover{color:var(--accent-ink)}
+.btn svg{width:15px;height:15px;flex-shrink:0}
+
+/* ---------------- stat line — the only summary strip ---------------- */
+.stat-line{display:flex;gap:0;margin-bottom:26px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);overflow:hidden}
+.stat{flex:1;padding:18px 20px;border-right:1px solid var(--line-2)}
+.stat:last-child{border-right:0}
+.stat .k{font-size:10.5px;font-weight:650;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.stat .v{font-family:var(--mono);font-size:22px;font-weight:600;margin-top:8px;letter-spacing:-.02em}
+.stat .v.warn{color:var(--warn)}
+.stat .v.bad{color:var(--bad)}
+.stat .v.good{color:var(--good)}
+.stat .d{font-size:11px;color:var(--muted);margin-top:4px}
+@media(max-width:640px){.stat-line{flex-wrap:wrap}.stat{flex:1 1 50%;border-bottom:1px solid var(--line-2)}}
+
+/* ---------------- panel — the one working surface ---------------- */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:22px}
+.panel-h{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;gap:12px;flex-wrap:wrap}
+.panel-h h2{font-size:15px;font-weight:700}
+.panel-h .k{font-size:11px;color:var(--muted)}
+.panel-body{padding:0 22px 6px}
+
+.row{display:flex;align-items:center;gap:14px;padding:15px 22px;border-top:1px solid var(--line-2);flex-wrap:wrap}
+.panel-h + .row{border-top:1px solid var(--line-2)}
+.row .who-mini{width:28px;height:28px;border-radius:50%;background:var(--line-2);color:var(--ink-2);display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;flex-shrink:0}
+.row .body{flex:1;min-width:180px}
+.row .t1{font-size:13.5px;font-weight:620}
+.row .t2{font-size:11.5px;color:var(--muted);margin-top:2px}
+.row .amt{font-family:var(--mono);font-size:13.5px;font-weight:600;text-align:right}
+.row .amt small{display:block;font-size:10px;color:var(--muted);font-weight:400;margin-top:2px;font-family:var(--sans)}
+
+.tag{font-size:10.5px;font-weight:650;letter-spacing:.02em;padding:3px 10px;border-radius:20px;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;border:1px solid transparent}
+.tag.warn{background:var(--warn-tint);color:var(--warn-ink,var(--warn));border-color:var(--warn-line)}
+.tag.good{background:var(--good-tint);color:var(--good);border-color:var(--good-line)}
+.tag.bad{background:var(--bad-tint);color:var(--bad);border-color:var(--bad-line)}
+.tag.plain{background:var(--line-2);color:var(--ink-2)}
+
+.qi-actions{display:flex;gap:7px;margin-left:auto}
+.qbtn{font:inherit;font-size:12px;font-weight:650;border-radius:8px;padding:8px 13px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink-2)}
+.qbtn.ok{color:var(--good);border-color:var(--good-line)}
+.qbtn.ok:hover:not(:disabled){background:var(--good-tint)}
+.qbtn.no{color:var(--bad);border-color:var(--bad-line)}
+.qbtn.no:hover:not(:disabled){background:var(--bad-tint)}
+.row.done{opacity:.4}
+.row.done .qi-actions{display:none}
+.row.done .amt:after{content:" ✓";color:var(--good)}
+
+.empty{padding:40px 20px;text-align:center;color:var(--muted);font-size:13px}
+
+/* ---------------- link line (used for "view all") ---------------- */
+.panel-more{padding:14px 22px 18px}
+
+/* ---------------- vouchers — flattened, no ticket theatrics ---------------- */
+.filter-bar{display:flex;align-items:center;gap:9px;margin-bottom:18px;flex-wrap:wrap}
+.chip{font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:20px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);cursor:pointer}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.search{margin-left:auto;display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:20px;padding:8px 14px;font-size:12.5px;color:var(--muted);min-width:200px}
+.search svg{width:14px;height:14px;flex-shrink:0}
+.search input{border:0;background:none;outline:0;font:inherit;font-size:12.5px;color:var(--ink);width:100%}
+
+.vlist{display:flex;flex-direction:column;gap:10px}
+.vcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);padding:16px 18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.vcard .vmain{flex:1;min-width:200px}
+.vcard .code{font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+.vcard .title{font-size:14px;font-weight:650;margin-top:3px}
+.vcard .meta{font-size:11.5px;color:var(--muted);margin-top:3px}
+.vcard .vright{display:flex;align-items:center;gap:16px}
+.vcard .amt{font-family:var(--mono);font-size:15.5px;font-weight:650;text-align:right}
+.vcard .docbar{width:64px}
+.docbar .n{font-size:10px;color:var(--muted);text-align:center;margin-bottom:4px}
+.docbar .track{height:5px;border-radius:20px;background:var(--line-2);overflow:hidden}
+.docbar .track i{display:block;height:100%;border-radius:20px}
+
+/* ---------------- funds ---------------- */
+.fund-row{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:22px}
+@media(max-width:640px){.fund-row{grid-template-columns:1fr}}
+.fund{padding:18px 20px}
+.fund .top{display:flex;align-items:center;justify-content:space-between}
+.fund .name{font-size:12.5px;font-weight:650;margin-top:12px;color:var(--ink-2)}
+.fund .bal{font-family:var(--mono);font-size:22px;font-weight:600;margin-top:6px}
+.track{height:6px;border-radius:20px;background:var(--line-2);margin-top:12px;overflow:hidden}
+.track i{display:block;height:100%;border-radius:20px}
+.fund .ceil{font-size:10.5px;color:var(--muted);margin-top:7px;display:flex;justify-content:space-between}
+
+/* ---------------- tables ---------------- */
+table{width:100%;border-collapse:collapse}
+thead th{text-align:left;font-size:10.5px;font-weight:650;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:10px 22px;border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2)}
+tbody td{padding:12px 22px;border-top:1px solid var(--line-2);font-size:12.5px}
+tbody tr:first-child td{border-top:0}
+td.num{font-family:var(--mono);text-align:right}
+.tbl-wrap{overflow-x:auto}
+
+/* ---------------- contracts / milestones ---------------- */
+.contract{padding:18px 20px}
+.contract .top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
+.contract .t1{font-size:14px;font-weight:650}
+.contract .t2{font-size:11.5px;color:var(--muted);margin-top:3px}
+.ms-row{display:flex;gap:5px;margin-top:15px}
+.ms-row .seg{flex:1;height:7px;border-radius:20px;background:var(--line-2);overflow:hidden}
+.ms-row .seg i{display:block;height:100%;border-radius:20px}
+.ms-labels{display:flex;justify-content:space-between;margin-top:7px;font-size:10px;color:var(--muted)}
+
+/* ---------------- tax rate cards ---------------- */
+.rate-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+@media(max-width:640px){.rate-row{grid-template-columns:1fr 1fr}}
+.rate{padding:16px 18px}
+.rate .name{font-size:11.5px;font-weight:650;color:var(--muted)}
+.rate .val{font-family:var(--mono);font-size:20px;font-weight:600;margin-top:8px}
+
+.declare-line{display:flex;align-items:center;justify-content:space-between;padding:15px 22px;border-top:1px solid var(--line-2);gap:14px;flex-wrap:wrap}
+.declare-line:first-of-type{border-top:0}
+.declare-line .l{font-size:12.5px;color:var(--ink-2)}
+.declare-line .amt{font-family:var(--mono);font-size:18px;font-weight:650}
+
+/* ---------------- vendor comparison ---------------- */
+.vendor-row{display:flex;flex-direction:column;gap:12px}
+.vendor{padding:17px 20px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.vendor.best{border-color:var(--good-line);background:linear-gradient(0deg,var(--surface),var(--surface))}
+.vendor .vinfo{flex:1;min-width:180px}
+.vendor .vname{font-size:14px;font-weight:650;display:flex;align-items:center;gap:8px}
+.vendor .vsub{font-size:11.5px;color:var(--muted);margin-top:2px}
+.vendor .specs{display:flex;gap:22px;font-size:11.5px;color:var(--ink-2)}
+.vendor .specs b{display:block;font-weight:650;color:var(--ink);margin-top:2px}
+.vendor .price{font-family:var(--mono);font-size:19px;font-weight:650;text-align:right;min-width:110px}
+.vendor .price small{display:block;font-size:10.5px;color:var(--muted);font-weight:400;font-family:var(--sans)}
+
+/* ---------------- modal ---------------- */
+.scrim{position:fixed;inset:0;background:rgba(21,24,30,.46);z-index:190;display:none}
+.scrim.on{display:block}
+.modal{position:fixed;top:0;right:0;bottom:0;width:500px;max-width:94vw;z-index:200;background:var(--surface);box-shadow:-16px 0 46px rgba(0,0,0,.22);transform:translateX(100%);transition:transform .26s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}
+.modal.on{transform:none}
+.modal-h{padding:24px 26px 16px;border-bottom:1px solid var(--line)}
+.modal-h .k{font-size:10.5px;font-weight:650;letter-spacing:.07em;text-transform:uppercase;color:var(--accent)}
+.modal-h h3{font-family:var(--serif);font-size:20px;font-weight:560;margin:8px 0 6px}
+.modal-h p{font-size:12.5px;color:var(--muted)}
+.modal-x{position:absolute;top:20px;right:22px;width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--surface);cursor:pointer;color:var(--ink-2);font-size:17px;line-height:1}
+.modal-h{position:relative}
+.modal-b{padding:22px 26px 36px;overflow-y:auto;flex:1}
+.modal-b h4{font-size:11px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+.modal-b h4:not(:first-child){margin-top:24px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:11px;color:var(--muted);font-weight:600}
+.field .val{border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:13px;background:var(--bg)}
+.budget-effect{background:var(--accent-tint);border:1px solid var(--accent-line);border-radius:12px;padding:14px 16px;margin-top:6px}
+.budget-effect .line{display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0}
+.budget-effect .line b{font-family:var(--mono)}
+.budget-effect .line.total{border-top:1px dashed var(--accent-line);margin-top:6px;padding-top:8px;font-weight:700}
+.modal-foot{padding:16px 26px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end}
+.checklist{display:flex;flex-direction:column;gap:1px}
+.check-item{display:flex;align-items:center;gap:12px;padding:12px 2px;border-top:1px solid var(--line-2);cursor:pointer}
+.check-item:first-child{border-top:0}
+.box{width:19px;height:19px;border-radius:6px;border:1.6px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.box svg{width:11px;height:11px;opacity:0;color:#fff}
+.check-item.on .box{background:var(--good);border-color:var(--good)}
+.check-item.on .box svg{opacity:1}
+.check-item .lab{font-size:13px;color:var(--ink-2)}
+.check-item.on .lab{color:var(--ink);text-decoration:line-through;text-decoration-color:var(--good-line)}
+.check-item .req{margin-left:auto;font-size:9.5px;color:var(--bad);font-weight:650;text-transform:uppercase}
+.gate{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:11px;margin-top:16px;font-size:12.5px;font-weight:600}
+.gate.locked{background:var(--bad-tint);color:var(--bad)}
+.gate.ready{background:var(--good-tint);color:var(--good)}
+.gate svg{width:15px;height:15px;flex-shrink:0}
+
+.note{margin-top:30px;padding:18px 22px;border-radius:var(--radius);background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--good)}
+.note h4{color:var(--good);font-size:13px;margin-bottom:4px}
+.note p{font-size:12.5px;color:var(--ink-2)}
+
+.toast-wrap{position:fixed;bottom:20px;right:20px;z-index:300;display:flex;flex-direction:column;gap:9px;max-width:340px}
+.toast{background:var(--ink);color:#fff;border-radius:12px;padding:13px 15px;font-size:12.5px;line-height:1.5;box-shadow:var(--shadow);display:flex;gap:9px;align-items:flex-start;animation:toastIn .2s ease}
+.toast b{color:#F2A448}
+.toast svg{width:14px;height:14px;flex-shrink:0;margin-top:2px;color:#F2A448}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <button class="hamburger" onclick="toggleSidebar()" aria-label="Open navigation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+  <div class="mark"><span>M</span></div>
+  <div class="brandtext"><div class="name">Mesael Finance</div><div class="sub">CONSTRUCTION &amp; CONTRACTING</div></div>
+  <div class="tb-right">
+    <button class="who" id="whoBtn" onclick="toggleRoleMenu()" aria-haspopup="true" aria-expanded="false">
+      <div class="avatar" id="whoAvatar">LG</div>
+      <div><div class="name" id="whoName">Leta</div><div class="role" id="whoRole">Operational Finance</div></div>
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      <div class="role-menu" id="roleMenu">
+        <div class="rm-h">Sign in as</div>
+        <button type="button" class="role-item" data-role="mesael" onclick="switchRole('mesael', event)"><span class="r-av">MS</span><span><span class="r-name">Mesael</span><br><span class="r-role">Owner / CEO</span></span></button>
+        <button type="button" class="role-item" data-role="dembi" onclick="switchRole('dembi', event)"><span class="r-av">DG</span><span><span class="r-name">Dembi</span><br><span class="r-role">Deputy GM &amp; Finance Head</span></span></button>
+        <button type="button" class="role-item active" data-role="leta" onclick="switchRole('leta', event)"><span class="r-av">LG</span><span><span class="r-name">Leta</span><br><span class="r-role">Operational Finance</span></span></button>
+        <button type="button" class="role-item" data-role="kalkidan" onclick="switchRole('kalkidan', event)"><span class="r-av">KA</span><span><span class="r-name">Kalkidan</span><br><span class="r-role">Accountant</span></span></button>
+        <button type="button" class="role-item" data-role="yamrot" onclick="switchRole('yamrot', event)"><span class="r-av">YB</span><span><span class="r-name">Yamrot</span><br><span class="r-role">Billing &amp; Tax</span></span></button>
+      </div>
+    </button>
+  </div>
+</div>
+
+<div class="app">
+<div class="sidebar-scrim" id="sideScrim" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="side-role">
+    <div class="rname" id="sideRoleName">Leta</div>
+    <span class="side-tag" id="sideRoleTitle">Operational Finance</span>
+  </div>
+
+  <nav class="side-nav" data-role-nav="mesael">
+    <button class="navbtn" data-page="mesael-dashboard" onclick="navigate('mesael','dashboard')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9M5 10v10h14V10"/></svg>Dashboard</button>
+    <button class="navbtn" data-page="mesael-approvals" onclick="navigate('mesael','approvals')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Approvals<span class="dot" id="dotMesael"></span></button>
+    <button class="navbtn" data-page="mesael-reports" onclick="navigate('mesael','reports')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>Reports</button>
+  </nav>
+
+  <nav class="side-nav" data-role-nav="dembi">
+    <button class="navbtn" data-page="dembi-dashboard" onclick="navigate('dembi','dashboard')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9M5 10v10h14V10"/></svg>Dashboard</button>
+    <button class="navbtn" data-page="dembi-approvals" onclick="navigate('dembi','approvals')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Approvals<span class="dot" id="dotDembi"></span></button>
+    <button class="navbtn" data-page="dembi-cash" onclick="navigate('dembi','cash')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>Cash &amp; Banks</button>
+    <button class="navbtn" data-page="dembi-reports" onclick="navigate('dembi','reports')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>Reports</button>
+  </nav>
+
+  <nav class="side-nav on" data-role-nav="leta">
+    <button class="navbtn" data-page="leta-dashboard" onclick="navigate('leta','dashboard')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9M5 10v10h14V10"/></svg>Dashboard</button>
+    <button class="navbtn" data-page="leta-requests" onclick="navigate('leta','requests')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v5"/></svg>Payment Requests</button>
+    <button class="navbtn" data-page="leta-pettycash" onclick="navigate('leta','pettycash')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Petty Cash</button>
+    <button class="navbtn" data-page="leta-vendors" onclick="navigate('leta','vendors')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>Vendor Comparison</button>
+  </nav>
+
+  <nav class="side-nav" data-role-nav="kalkidan">
+    <button class="navbtn" data-page="kalkidan-dashboard" onclick="navigate('kalkidan','dashboard')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9M5 10v10h14V10"/></svg>Dashboard</button>
+    <button class="navbtn" data-page="kalkidan-ledger" onclick="navigate('kalkidan','ledger')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>Ledger &amp; Reconciliation</button>
+    <button class="navbtn" data-page="kalkidan-reports" onclick="navigate('kalkidan','reports')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>Reports &amp; Peachtree</button>
+  </nav>
+
+  <nav class="side-nav" data-role-nav="yamrot">
+    <button class="navbtn" data-page="yamrot-dashboard" onclick="navigate('yamrot','dashboard')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9M5 10v10h14V10"/></svg>Dashboard</button>
+    <button class="navbtn" data-page="yamrot-billing" onclick="navigate('yamrot','billing')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Client Billing</button>
+    <button class="navbtn" data-page="yamrot-tax" onclick="navigate('yamrot','tax')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>Tax Centre<span class="dot" id="dotYamrot"></span></button>
+  </nav>
+
+  <div class="side-foot">Role-based access — you see only your own workspace.</div>
+</aside>
+
+<main class="main">
+<div class="stage" id="stage">
+
+<!-- ============================================================ MESAEL ============================================================ -->
+<section class="page" id="mesael-dashboard" data-role="mesael">
+  <div class="head"><span class="eyebrow">Owner workspace</span><h1>Good to see you, Mesael</h1><p>Two things need your decision. Everything else keeps moving without you.</p></div>
+  <div class="stat-line">
+    <div class="stat"><div class="k">Cash position</div><div class="v">Br 4.29M</div><div class="d">↑ Br 312K this week</div></div>
+    <div class="stat"><div class="k">Waiting on you</div><div class="v warn">2</div><div class="d">1 payment · 1 tax decision</div></div>
+    <div class="stat"><div class="k">Receivables overdue</div><div class="v bad">Br 480K</div><div class="d">CMC Residential · 34 days</div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-h"><h2>Owner-reserved — needs your decision</h2><span class="k">Any amount, only you</span></div>
+    <div class="row"><div class="who-mini">LG</div><div class="body"><div class="t1">Subcontractor advance — CMC Residential Ph.2</div><div class="t2">Prepared by Leta · waiting 4 days</div></div><div class="amt">Br 1,150,000</div><div class="qi-actions"><button class="qbtn ok" onclick="approveItem(this,'PV-2026-00479')">Approve</button><button class="qbtn no" onclick="declineItem(this,'PV-2026-00479')">Decline</button></div></div>
+    <div class="row"><div class="who-mini">YB</div><div class="body"><div class="t1">Tax clearance renewal — Q3 filing</div><div class="t2">Certificate expires in 11 days</div></div><div class="amt"><span class="tag warn">Needs decision</span></div><div class="qi-actions"><button class="qbtn ok" onclick="approveItem(this,'Tax clearance renewal')">Approve</button><button class="qbtn no" onclick="declineItem(this,'Tax clearance renewal')">Decline</button></div></div>
+    <div class="panel-more"><button class="btn text" onclick="navigate('mesael','approvals')">View all approvals →</button></div>
+  </div>
+</section>
+
+<section class="page" id="mesael-approvals" data-role="mesael">
+  <div class="head"><span class="eyebrow">Any amount · owner only</span><h1>Approvals</h1><p>Approved items move to payment automatically. Nothing here reaches you undocumented.</p></div>
+  <div class="panel">
+    <div class="panel-h"><h2>Awaiting your decision</h2><span class="k">2 open</span></div>
+    <div class="row"><div class="who-mini">LG</div><div class="body"><div class="t1">PV-2026-00479 · Subcontractor advance, CMC Residential Ph.2</div><div class="t2">Girum Concrete Works · RTGS · 5 of 5 documents attached</div></div><div class="amt">Br 1,150,000</div><div class="qi-actions"><button class="qbtn ok" onclick="approveItem(this,'PV-2026-00479')">Approve</button><button class="qbtn no" onclick="declineItem(this,'PV-2026-00479')">Decline</button></div></div>
+    <div class="row"><div class="who-mini">YB</div><div class="body"><div class="t1">Tax clearance renewal — Q3 filing</div><div class="t2">Prepared by Yamrot · expires 17 Aug 2026</div></div><div class="amt"><span class="tag warn">Needs decision</span></div><div class="qi-actions"><button class="qbtn ok" onclick="approveItem(this,'Tax clearance renewal')">Approve</button><button class="qbtn no" onclick="declineItem(this,'Tax clearance renewal')">Decline</button></div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-h"><h2>Decided by you</h2><span class="k">Last 14 days</span></div>
+    <div class="row"><div class="who-mini">LG</div><div class="body"><div class="t1">Land lease renewal — head office yard</div><div class="t2">Approved 02 Aug 2026</div></div><div class="amt">Br 620,000</div></div>
+    <div class="row"><div class="who-mini">DG</div><div class="body"><div class="t1">New excavator purchase — capital item</div><div class="t2">Approved 28 Jul 2026</div></div><div class="amt">Br 3,400,000</div></div>
+  </div>
+</section>
+
+<section class="page" id="mesael-reports" data-role="mesael">
+  <div class="head-row">
+    <div class="head" style="margin-bottom:0"><span class="eyebrow">Full read, every figure</span><h1>Reports</h1><p>The same statements Accounting works from — read and export, no editing here.</p></div>
+    <button class="btn" onclick="exportPL()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Download PDF</button>
+  </div>
+  <div class="stat-line" style="margin-top:26px">
+    <div class="stat"><div class="k">Revenue, YTD</div><div class="v">Br 24.9M</div></div>
+    <div class="stat"><div class="k">Net profit before tax</div><div class="v good">Br 3.81M</div></div>
+    <div class="stat"><div class="k">Owner capital</div><div class="v">Br 15.8M</div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-h"><h2>Profit &amp; loss — summary, YTD</h2></div>
+    <div class="tbl-wrap"><table><tbody>
+      <tr><td>Contract revenue</td><td class="num">24,860,000</td></tr>
+      <tr><td>Direct project cost</td><td class="num">−18,110,600</td></tr>
+      <tr><td>Overheads &amp; head office</td><td class="num">−2,940,200</td></tr>
+      <tr><td style="font-weight:700">Net profit before tax</td><td class="num" style="font-weight:700;color:var(--good)">3,809,200</td></tr>
+    </tbody></table></div>
+  </div>
+  <div class="panel">
+    <div class="panel-h"><h2>Balance sheet — snapshot</h2><span class="k">4 Aug 2026</span></div>
+    <div class="tbl-wrap"><table><tbody>
+      <tr><td>Cash &amp; bank</td><td class="num">4,286,400</td></tr>
+      <tr><td>Accounts receivable</td><td class="num">3,105,000</td></tr>
+      <tr><td>Fixed assets, net</td><td class="num">2,294,700</td></tr>
+      <tr><td style="font-weight:700">Total assets</td><td class="num" style="font-weight:700">9,686,100</td></tr>
+      <tr><td>Accounts payable</td><td class="num">1,940,150</td></tr>
+      <tr><td style="font-weight:700">Owner capital</td><td class="num" style="font-weight:700">15,830,400</td></tr>
+    </tbody></table></div>
+  </div>
+</section>
+
+<!-- ============================================================ DEMBI ============================================================ -->
+<section class="page" id="dembi-dashboard" data-role="dembi">
+  <div class="head"><span class="eyebrow">Finance-wide · read/write</span><h1>Finance overview</h1><p>Three items are within your ceiling right now.</p></div>
+  <div class="stat-line">
+    <div class="stat"><div class="k">Cash position</div><div class="v">Br 4.29M</div><div class="d">↑ Br 312K this week</div></div>
+    <div class="stat"><div class="k">Accounts payable</div><div class="v">Br 1.94M</div><div class="d">22 suppliers</div></div>
+    <div class="stat"><div class="k">Budget exceptions</div><div class="v warn">3</div><div class="d">Over remaining balance</div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-h"><h2>Waiting on you</h2><span class="k">Within DGM ceiling</span></div>
+    <div class="row"><div class="who-mini">LG</div><div class="body"><div class="t1">Rebar delivery — Bole Ring Road</div><div class="t2">Prepared by Leta · 2 days</div></div><div class="amt">Br 286,400</div><div class="qi-actions"><button class="qbtn ok" onclick="approveItem(this,'PV-2026-00481')">Approve</button><button class="qbtn no" onclick="declineItem(this,'PV-2026-00481')">Decline</button></div></div>
+    <div class="row"><div class="who-mini">LG</div><div class="body"><div class="t1">Fuel &amp; site consumables — Adama Logistics</div><div class="t2">Prepared by Leta · 6 hours</div></div><div class="amt">Br 42,900</div><div class="qi-actions"><button class="qbtn ok" onclick="approveItem(this,'PV-2026-00483')">Approve</button><button class="qbtn no" onclick="declineItem(this,'PV-2026-00483')">Decline</button></div></div>
+    <div class="panel-more"><button class="btn text" onclick="navigate('dembi','approvals')">View all approvals →</button></div>
+  </div>
+</section>
+
+<section class="page" id="dembi-approvals" data-role="dembi">
+  <div class="head"><span class="eyebrow">Delegated ceiling — up to Br 500,000</span><h1>Approvals</h1><p>Anything above your ceiling routes to Mesael automatically.</p></div>
+  <div class="panel">
+    <div class="panel-h"><h2>Awaiting your decision</h2><span class="k">3 open</span></div>
+    <div class="row"><div class="who-mini">LG</div><div class="body"><div class="t1">PV-2026-00481 · Rebar delivery, Bole Ring Road</div><div class="t2">Selam Steel PLC · RTGS · 4 of 4 documents attached</div></div><div class="amt">Br 286,400</div><div class="qi-actions"><button class="qbtn ok" onclick="approveItem(this,'PV-2026-00481')">Approve</button><button class="qbtn no" onclick="declineItem(this,'PV-2026-00481')">Decline</button></div></div>
+    <div class="row"><div class="who-mini">LG</div><div class="body"><div class="t1">PV-2026-00477 · Formwork timber, Adama Logistics Park</div><div class="t2">Oda Timber &amp; Hardware · cheque · 4 of 4 documents attached</div></div><div class="amt">Br 118,650</div><div class="qi-actions"><button class="qbtn ok" onclick="approveItem(this,'PV-2026-00477')">Approve</button><button class="qbtn no" onclick="declineItem(this,'PV-2026-00477')">Decline</button></div></div>
+    <div class="row"><div class="who-mini">LG</div><div class="body"><div class="t1">PV-2026-00483 · Fuel &amp; site consumables</div><div class="t2">NOC Ethiopia · petty cash · 6 hours</div></div><div class="amt">Br 42,900</div><div class="qi-actions"><button class="qbtn ok" onclick="approveItem(this,'PV-2026-00483')">Approve</button><button class="qbtn no" onclick="declineItem(this,'PV-2026-00483')">Decline</button></div></div>
+  </div>
+  <div class="panel"><div class="panel-h"><h2>Routed to Mesael</h2><span class="k">Above your ceiling, for visibility</span></div>
+    <div class="row"><div class="who-mini">LG</div><div class="body"><div class="t1">Subcontractor advance — CMC Residential Ph.2</div><div class="t2">Waiting on Mesael · 4 days</div></div><div class="amt">Br 1,150,000</div></div>
+  </div>
+</section>
+
+<section class="page" id="dembi-cash" data-role="dembi">
+  <div class="head"><span class="eyebrow">Every fund has a ceiling</span><h1>Cash, bank &amp; petty cash</h1><p>Cross a petty-cash ceiling and it asks for a bank transfer instead.</p></div>
+  <div class="fund-row">
+    <div class="panel fund"><div class="top"><span class="tag good">Healthy</span></div><div class="name">CBE Operating Account · 0847</div><div class="bal">Br 3,614,200</div><div class="track"><i style="width:41%;background:var(--accent)"></i></div><div class="ceil"><span>No ceiling</span><span>41% committed</span></div></div>
+    <div class="panel fund"><div class="top"><span class="tag bad">Near ceiling</span></div><div class="name">Petty Cash — Site B, Adama</div><div class="bal">Br 14,100</div><div class="track"><i style="width:94%;background:var(--bad)"></i></div><div class="ceil"><span>Ceiling Br 15,000</span><span>94% used</span></div></div>
+  </div>
+  <div class="panel"><div class="panel-h"><h2>Supplier &amp; subcontractor payments</h2><span class="k">5 of 22</span></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Payee</th><th>Project</th><th>Status</th><th style="text-align:right">Amount</th></tr></thead><tbody>
+      <tr><td>Selam Steel PLC</td><td>Bole Ring Road</td><td><span class="tag warn">Awaiting approval</span></td><td class="num">286,400</td></tr>
+      <tr><td>Girum Concrete Works</td><td>CMC Residential Ph.2</td><td><span class="tag plain">Owner-reserved</span></td><td class="num">1,150,000</td></tr>
+      <tr><td>Habesha Plant Rentals</td><td>Bole Ring Road</td><td><span class="tag good">Paid &amp; reconciled</span></td><td class="num">224,000</td></tr>
+      <tr><td>Oda Timber &amp; Hardware</td><td>Adama Logistics Park</td><td><span class="tag good">Ready to pay</span></td><td class="num">118,650</td></tr>
+      <tr><td>NOC Ethiopia</td><td>Adama Logistics Park</td><td><span class="tag good">Ready to pay</span></td><td class="num">42,900</td></tr>
+    </tbody></table></div>
+  </div>
+</section>
+
+<section class="page" id="dembi-reports" data-role="dembi">
+  <div class="head"><span class="eyebrow">Finance-wide read/write</span><h1>Reports &amp; Peachtree</h1><p>The statutory ledger stays Peachtree — this is the staged export ahead of it.</p></div>
+  <div class="stat-line">
+    <div class="stat"><div class="k">Revenue, YTD</div><div class="v">Br 24.9M</div></div>
+    <div class="stat"><div class="k">Cost of work, YTD</div><div class="v">Br 18.1M</div></div>
+    <div class="stat"><div class="k">Gross margin</div><div class="v good">27.1%</div></div>
+  </div>
+  <div class="panel"><div class="panel-h"><h2>Peachtree export queue</h2><span class="k">Next export in 3 days</span></div>
+    <div class="row"><div class="body"><div class="t1">July entries</div><div class="t2">288 journal lines · exported 01 Aug 2026</div></div><span class="tag good">Synced</span></div>
+    <div class="row" id="augRowD"><div class="body"><div class="t1">August entries, in progress</div><div class="t2">94 journal lines staged · not yet exported</div></div><span class="tag warn">Pending</span></div>
+  </div>
+</section>
+
+<!-- ============================================================ LETA ============================================================ -->
+<section class="page on" id="leta-dashboard" data-role="leta">
+  <div class="head-row">
+    <div class="head" style="margin-bottom:0"><span class="eyebrow">Preparation, not approval</span><h1>Good to see you, Leta</h1><p>Approval is always someone else's decision — Dembi or Mesael.</p></div>
+    <button class="btn primary" onclick="openModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>New voucher</button>
+  </div>
+  <div class="stat-line" style="margin-top:26px">
+    <div class="stat"><div class="k">Awaiting approval</div><div class="v">2</div><div class="d">Br 1.44M in total</div></div>
+    <div class="stat"><div class="k">Documents pending</div><div class="v warn">2</div><div class="d">Blocking submission</div></div>
+    <div class="stat"><div class="k">Approved this week</div><div class="v good">4</div><div class="d">Br 613,550</div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-h"><h2>Your vouchers, most recent first</h2><span class="k">3 of 22</span></div>
+    <div class="row"><div class="who-mini">SS</div><div class="body"><div class="t1">Rebar delivery — Bole Ring Road</div><div class="t2">Waiting on Dembi · 2 days</div></div><div class="amt">Br 286,400<small>ready to approve</small></div></div>
+    <div class="row"><div class="who-mini">GC</div><div class="body"><div class="t1">Subcontractor advance — CMC Residential</div><div class="t2">Waiting on Mesael · 4 days</div></div><div class="amt">Br 1,150,000<small>owner-reserved</small></div></div>
+    <div class="row"><div class="who-mini">NE</div><div class="body"><div class="t1">Site generator diesel — CMC Residential Ph.2</div><div class="t2">1 of 3 documents attached</div></div><div class="amt"><span class="tag warn">Docs pending</span></div></div>
+    <div class="panel-more"><button class="btn text" onclick="navigate('leta','requests')">View all payment requests →</button></div>
+  </div>
+</section>
+
+<section class="page" id="leta-requests" data-role="leta">
+  <div class="head-row">
+    <div class="head" style="margin-bottom:0"><span class="eyebrow">Money out, under control</span><h1>Payment requests</h1><p>Preparation and approval are always two different people.</p></div>
+    <button class="btn primary" onclick="openModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>New voucher</button>
+  </div>
+  <div class="filter-bar" style="margin-top:26px">
+    <button class="chip on" data-filter="all" onclick="filterVouchers(this)">All · 22</button>
+    <button class="chip" data-filter="pending" onclick="filterVouchers(this)">Docs pending · 6</button>
+    <button class="chip" data-filter="ready" onclick="filterVouchers(this)">Ready to approve · 4</button>
+    <button class="chip" data-filter="paid" onclick="filterVouchers(this)">Paid · 9</button>
+    <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input id="voucherSearch" type="text" placeholder="Search voucher, supplier…" oninput="filterVouchers()"></div>
+  </div>
+  <div class="vlist" id="voucherGrid">
+    <div class="vcard" data-status="pending"><div class="vmain"><div class="code">PV-2026-00481</div><div class="title">Rebar delivery — Bole Ring Road</div><div class="meta">Selam Steel PLC · RTGS</div></div><div class="vright"><div class="docbar"><div class="n">2 / 4 docs</div><div class="track"><i style="width:50%;background:var(--warn)"></i></div></div><div class="amt">Br 286,400</div></div></div>
+    <div class="vcard" data-status="ready"><div class="vmain"><div class="code">PV-2026-00477</div><div class="title">Formwork timber — Adama Logistics Park</div><div class="meta">Oda Timber &amp; Hardware · Cheque</div></div><div class="vright"><span class="tag good">Ready to approve</span><div class="amt">Br 118,650</div></div></div>
+    <div class="vcard" data-status="ready"><div class="vmain"><div class="code">PV-2026-00479</div><div class="title">Subcontractor advance — CMC Residential Ph.2</div><div class="meta">Girum Concrete Works · RTGS · owner-reserved</div></div><div class="vright"><span class="tag good">Ready to approve</span><div class="amt">Br 1,150,000</div></div></div>
+    <div class="vcard" data-status="ready"><div class="vmain"><div class="code">PV-2026-00483</div><div class="title">Fuel &amp; site consumables — Adama Logistics</div><div class="meta">NOC Ethiopia · Petty cash</div></div><div class="vright"><span class="tag warn">Approved, awaiting pay</span><div class="amt">Br 42,900</div></div></div>
+    <div class="vcard" data-status="paid"><div class="vmain"><div class="code">PV-2026-00470</div><div class="title">Excavator hire — Bole Ring Road</div><div class="meta">Habesha Plant Rentals · RTGS</div></div><div class="vright"><span class="tag plain">Paid · Aug 03</span><div class="amt">Br 224,000</div></div></div>
+    <div class="vcard" data-status="pending"><div class="vmain"><div class="code">PV-2026-00485</div><div class="title">Site generator diesel — CMC Residential Ph.2</div><div class="meta">Total Ethiopia · Petty cash</div></div><div class="vright"><div class="docbar"><div class="n">1 / 3 docs</div><div class="track"><i style="width:33%;background:var(--warn)"></i></div></div><div class="amt">Br 8,300</div></div></div>
+  </div>
+  <div class="empty" id="voucherEmpty" style="display:none">No vouchers match this filter and search.</div>
+</section>
+
+<section class="page" id="leta-pettycash" data-role="leta">
+  <div class="head"><span class="eyebrow">Site &amp; head office floats</span><h1>Petty cash</h1><p>Cross the ceiling and the system asks for a bank transfer request instead.</p></div>
+  <div class="fund-row">
+    <div class="panel fund"><div class="top"><span class="tag bad">Near ceiling</span></div><div class="name">Petty Cash — Site B, Adama</div><div class="bal">Br 14,100</div><div class="track"><i style="width:94%;background:var(--bad)"></i></div><div class="ceil"><span>Ceiling Br 15,000</span><span>94% used</span></div></div>
+    <div class="panel fund"><div class="top"><span class="tag good">Healthy</span></div><div class="name">Petty Cash — Head Office</div><div class="bal">Br 22,600</div><div class="track"><i style="width:38%;background:var(--good)"></i></div><div class="ceil"><span>Ceiling Br 60,000</span><span>38% used</span></div></div>
+  </div>
+  <div class="panel"><div class="panel-h"><h2>Recent disbursements</h2><span class="k">This week</span></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Reference</th><th>Purpose</th><th style="text-align:right">Amount</th></tr></thead><tbody>
+      <tr><td class="mono">PC-0512</td><td>Site consumables — NOC Ethiopia</td><td class="num">42,900</td></tr>
+      <tr><td class="mono">PC-0509</td><td>Generator diesel — Total Ethiopia</td><td class="num">8,300</td></tr>
+      <tr><td class="mono">PC-0503</td><td>Site office supplies</td><td class="num">3,150</td></tr>
+    </tbody></table></div>
+  </div>
+</section>
+
+<section class="page" id="leta-vendors" data-role="leta">
+  <div class="head"><span class="eyebrow">Before a voucher is raised</span><h1>Vendor comparison</h1><p>Reinforcement steel — Bole Ring Road, base course. Three quotes on file.</p></div>
+  <div class="vendor-row">
+    <div class="panel vendor best">
+      <div class="vinfo"><div class="vname">Selam Steel PLC <span class="tag good">Best value</span></div><div class="vsub">Addis Ababa · 6 yrs on file</div></div>
+      <div class="specs"><div>Lead time<b>5 days</b></div><div>Terms<b>50% advance</b></div><div>On-time<b>11/12</b></div></div>
+      <div class="price">Br 71.60<small>per kg</small></div>
+      <button class="btn primary" onclick="selectVendor('Selam Steel PLC')">Select</button>
+    </div>
+    <div class="panel vendor">
+      <div class="vinfo"><div class="vname">Kality Metal Works</div><div class="vsub">Addis Ababa · 3 yrs on file</div></div>
+      <div class="specs"><div>Lead time<b>3 days</b></div><div>Terms<b>30% advance</b></div><div>On-time<b>8/9</b></div></div>
+      <div class="price">Br 74.20<small>per kg</small></div>
+      <button class="btn" onclick="selectVendor('Kality Metal Works')">Select</button>
+    </div>
+    <div class="panel vendor">
+      <div class="vinfo"><div class="vname">Habesha Steel Traders</div><div class="vsub">Adama · 2 yrs on file</div></div>
+      <div class="specs"><div>Lead time<b>9 days</b></div><div>Terms<b>Full advance</b></div><div>On-time<b>5/8</b></div></div>
+      <div class="price">Br 69.90<small>per kg</small></div>
+      <button class="btn" onclick="selectVendor('Habesha Steel Traders')">Select</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ KALKIDAN ============================================================ -->
+<section class="page" id="kalkidan-dashboard" data-role="kalkidan">
+  <div class="head"><span class="eyebrow">Ledger, reconciliation &amp; export</span><h1>Good to see you, Kalkidan</h1><p>Where the books stand today.</p></div>
+  <div class="stat-line">
+    <div class="stat"><div class="k">Lines matched</div><div class="v">128 / 142</div><div class="d">90% matched</div></div>
+    <div class="stat"><div class="k">Unmatched</div><div class="v bad">14</div><div class="d">Variance Br 6,240</div></div>
+    <div class="stat"><div class="k">Staged for export</div><div class="v">94</div><div class="d">August, not yet exported</div></div>
+  </div>
+  <div class="panel"><div class="panel-h"><h2>Needs attention</h2></div>
+    <div class="row"><div class="body"><div class="t1">Bank statement, CBE 0847 not yet imported</div><div class="t2">July reconciliation is 6 days behind</div></div><button class="btn text" onclick="navigate('kalkidan','ledger')">Open →</button></div>
+    <div class="row"><div class="body"><div class="t1">August export due in 3 days</div><div class="t2">94 journal lines staged, ready to run</div></div><button class="btn text" onclick="navigate('kalkidan','reports')">Open →</button></div>
+  </div>
+</section>
+
+<section class="page" id="kalkidan-ledger" data-role="kalkidan">
+  <div class="head"><span class="eyebrow">Nothing posted blind</span><h1>Ledger &amp; reconciliation</h1><p>Every posting traces back to a voucher or invoice.</p></div>
+  <div class="stat-line">
+    <div class="stat"><div class="k">Statement lines</div><div class="v">142</div></div>
+    <div class="stat"><div class="k">Matched</div><div class="v good">128</div></div>
+    <div class="stat"><div class="k">Unmatched</div><div class="v bad">14</div></div>
+    <div class="stat"><div class="k">Variance</div><div class="v">Br 6,240</div></div>
+  </div>
+  <div class="panel"><div class="panel-h"><h2>Recent postings</h2><span class="k">Posted automatically, from the record</span></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Source</th><th>Posted to</th><th>Project</th><th style="text-align:right">Debit</th><th style="text-align:right">Credit</th></tr></thead><tbody>
+      <tr><td class="mono">PV-2026-00470</td><td>Plant &amp; equipment hire</td><td>Bole Ring Road</td><td class="num">224,000</td><td class="num">—</td></tr>
+      <tr><td class="mono">PV-2026-00470</td><td>CBE Operating Account</td><td>—</td><td class="num">—</td><td class="num">224,000</td></tr>
+      <tr><td class="mono">INV-2026-0109</td><td>Accounts receivable</td><td>CMC Residential Ph.2</td><td class="num">3,720,000</td><td class="num">—</td></tr>
+      <tr><td class="mono">INV-2026-0109</td><td>Contract revenue</td><td>CMC Residential Ph.2</td><td class="num">—</td><td class="num">3,720,000</td></tr>
+    </tbody></table></div>
+  </div>
+</section>
+
+<section class="page" id="kalkidan-reports" data-role="kalkidan">
+  <div class="head-row">
+    <div class="head" style="margin-bottom:0"><span class="eyebrow">Statutory ledger stays Peachtree</span><h1>Reports &amp; Peachtree</h1><p>Clean, matched entries handed across on a controlled schedule.</p></div>
+    <div style="display:flex;gap:10px"><button class="btn" onclick="exportPL()">Export P&amp;L</button><button class="btn primary" id="stagedExportBtn" onclick="runExport(this)">Run staged export</button></div>
+  </div>
+  <div class="panel" style="margin-top:26px"><div class="panel-h"><h2>Profit &amp; loss — summary, YTD</h2></div>
+    <div class="tbl-wrap"><table><tbody>
+      <tr><td>Contract revenue</td><td class="num">24,860,000</td></tr>
+      <tr><td>Direct project cost</td><td class="num">−18,110,600</td></tr>
+      <tr><td>Overheads &amp; head office</td><td class="num">−2,940,200</td></tr>
+      <tr><td style="font-weight:700">Net profit before tax</td><td class="num" style="font-weight:700;color:var(--good)">3,809,200</td></tr>
+    </tbody></table></div>
+  </div>
+  <div class="panel"><div class="panel-h"><h2>Peachtree export queue</h2><span class="k">Next export in 3 days</span></div>
+    <div class="row"><div class="body"><div class="t1">June entries</div><div class="t2">312 journal lines · exported 02 Jul 2026</div></div><span class="tag good">Synced</span></div>
+    <div class="row"><div class="body"><div class="t1">July entries</div><div class="t2">288 journal lines · exported 01 Aug 2026</div></div><span class="tag good">Synced</span></div>
+    <div class="row" id="augRow"><div class="body"><div class="t1">August entries, in progress</div><div class="t2">94 journal lines staged · not yet exported</div></div><span class="tag warn">Pending</span></div>
+  </div>
+  <div class="note"><h4>Statutory ledger, unchanged</h4><p>Peachtree remains the statutory ledger — this hands across clean, matched entries.</p></div>
+</section>
+
+<!-- ============================================================ YAMROT ============================================================ -->
+<section class="page" id="yamrot-dashboard" data-role="yamrot">
+  <div class="head"><span class="eyebrow">Client side of the ledger, and tax</span><h1>Good to see you, Yamrot</h1><p>Collections to chase and the VAT filing clock.</p></div>
+  <div class="stat-line">
+    <div class="stat"><div class="k">Outstanding invoices</div><div class="v">Br 4.96M</div><div class="d">Br 480K overdue &gt; 30 days</div></div>
+    <div class="stat"><div class="k">VAT declaration</div><div class="v warn">4 days</div><div class="d">Br 686,355 payable</div></div>
+    <div class="stat"><div class="k">Receipts, August</div><div class="v good">3</div><div class="d">Br 4.48M</div></div>
+  </div>
+  <div class="panel"><div class="panel-h"><h2>Needs your attention</h2></div>
+    <div class="row"><div class="body"><div class="t1">CMC Development PLC — Br 480,000 overdue, 34 days</div><div class="t2">Superstructure milestone, Ph.2</div></div><button class="btn text" onclick="navigate('yamrot','billing')">Open →</button></div>
+    <div class="row"><div class="body"><div class="t1">VAT declaration due in 4 days</div><div class="t2">Sales and purchases aggregated, awaiting your review</div></div><button class="btn text" onclick="navigate('yamrot','tax')">Open →</button></div>
+  </div>
+</section>
+
+<section class="page" id="yamrot-billing" data-role="yamrot">
+  <div class="head-row">
+    <div class="head" style="margin-bottom:0"><span class="eyebrow">The client side of the ledger</span><h1>Client billing</h1><p>Invoices and receipts issued against the correct contract stage.</p></div>
+    <button class="btn primary" onclick="issueReceipt()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Issue receipt</button>
+  </div>
+  <div class="panel contract" style="margin-top:26px">
+    <div class="top"><div><div class="t1">Bole Ring Road Extension</div><div class="t2">Contract value Br 42,000,000 · milestone billing</div></div><span class="tag good">On schedule</span></div>
+    <div class="ms-row"><div class="seg"><i style="width:100%;background:var(--good)"></i></div><div class="seg"><i style="width:100%;background:var(--good)"></i></div><div class="seg"><i style="width:64%;background:var(--accent)"></i></div><div class="seg"><i style="width:0%"></i></div><div class="seg"><i style="width:0%"></i></div></div>
+    <div class="ms-labels"><span>Mobilisation</span><span>Earthworks</span><span>Base course · 64%</span><span>Asphalt</span><span>Handover</span></div>
+  </div>
+  <div class="panel contract">
+    <div class="top"><div><div class="t1">CMC Residential Phase 2</div><div class="t2">Contract value Br 18,600,000 · milestone billing</div></div><span class="tag bad">Overdue Br 480,000</span></div>
+    <div class="ms-row"><div class="seg"><i style="width:100%;background:var(--good)"></i></div><div class="seg"><i style="width:100%;background:var(--good)"></i></div><div class="seg"><i style="width:100%;background:var(--bad)"></i></div><div class="seg"><i style="width:20%;background:var(--accent)"></i></div><div class="seg"><i style="width:0%"></i></div></div>
+    <div class="ms-labels"><span>Mobilisation</span><span>Substructure</span><span>Superstructure · 34d unpaid</span><span>Finishes</span><span>Handover</span></div>
+  </div>
+  <div class="panel"><div class="panel-h"><h2>Invoices &amp; official receipts</h2><span class="k">4 this month</span></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Document</th><th>Client</th><th>Status</th><th style="text-align:right">Amount</th></tr></thead><tbody>
+      <tr><td class="mono">INV-2026-0112</td><td>Roads Authority</td><td><span class="tag warn">Awaiting collection</span></td><td class="num">4,480,000</td></tr>
+      <tr><td class="mono">OR-2026-0331</td><td>CMC Development PLC</td><td><span class="tag bad">Overdue 34 days</span></td><td class="num">480,000</td></tr>
+      <tr><td class="mono">INV-2026-0109</td><td>CMC Development PLC</td><td><span class="tag good">Collected</span></td><td class="num">3,720,000</td></tr>
+      <tr><td class="mono">OR-2026-0308</td><td>Roads Authority</td><td><span class="tag good">Collected</span></td><td class="num">6,300,000</td></tr>
+    </tbody></table></div>
+  </div>
+</section>
+
+<section class="page" id="yamrot-tax" data-role="yamrot">
+  <div class="head"><span class="eyebrow">Configurable, not hard-coded</span><h1>Tax centre</h1><p>Rates and thresholds live here as settings, not in code.</p></div>
+  <div class="rate-row">
+    <div class="panel rate"><div class="name">VAT</div><div class="val">15%</div></div>
+    <div class="panel rate"><div class="name">Withholding</div><div class="val">2%</div></div>
+    <div class="panel rate"><div class="name">Employment tax</div><div class="val">10–35%</div></div>
+    <div class="panel rate"><div class="name">Pension</div><div class="val">7 / 11%</div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-h"><h2>Monthly declaration — July 2026</h2><span class="k">Due in 4 days</span></div>
+    <div class="declare-line"><span class="l">Total sales, from client invoices</span><span class="amt">Br 10,780,000</span></div>
+    <div class="declare-line"><span class="l">Total purchases, from payment vouchers</span><span class="amt">Br 6,214,300</span></div>
+    <div class="declare-line"><span class="l">Net VAT payable</span><span class="amt" style="color:var(--accent)">Br 686,355</span></div>
+    <div id="declarePreview" style="display:none;padding:0 22px 18px">
+      <div style="background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:15px 17px;font-family:var(--mono);font-size:11.5px;line-height:1.9;color:var(--ink-2)">
+        TIN: 0012-3456-78 · Period: July 2026<br>Total sales: Br 10,780,000 · Total purchases: Br 6,214,300<br>Output VAT: Br 1,617,000 · Input VAT: Br 932,145<br>Net VAT payable: Br 686,355
+      </div>
+    </div>
+    <div class="modal-foot" style="border-top:1px solid var(--line-2)">
+      <button class="btn" id="previewBtn" onclick="togglePreview()">Preview declaration</button>
+      <button class="btn primary" onclick="markReviewed(this)">Mark reviewed</button>
+    </div>
+  </div>
+  <div class="panel"><div class="panel-h"><h2>Tax clearances</h2><span class="k">1 expiring soon</span></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Certificate</th><th>Expires</th><th>Status</th></tr></thead><tbody>
+      <tr><td>Tax clearance certificate — 2026</td><td>17 Aug 2026</td><td><span class="tag bad">Expires in 11 days</span></td></tr>
+      <tr><td>Contractor licence renewal</td><td>02 Jan 2027</td><td><span class="tag good">Current</span></td></tr>
+      <tr><td>VAT registration certificate</td><td>No expiry</td><td><span class="tag good">Current</span></td></tr>
+    </tbody></table></div>
+  </div>
+</section>
+
+</div>
+</main>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<div class="scrim" id="scrim" onclick="closeModal()"></div>
+<div class="modal" id="modal">
+  <div class="modal-h">
+    <button class="modal-x" onclick="closeModal()">&times;</button>
+    <div class="k">New payment voucher · PV-2026-00491</div>
+    <h3>No document, no approval</h3>
+    <p>Nothing here reaches Dembi's queue until the counterfoil is complete.</p>
+  </div>
+  <div class="modal-b">
+    <h4>Transaction</h4>
+    <div class="field-row"><div class="field"><label>Project</label><div class="val">Bole Ring Road Extension</div></div><div class="field"><label>Cost code</label><div class="val">CC-2201 · Reinforcement steel</div></div></div>
+    <div class="field-row"><div class="field"><label>Payee</label><div class="val">Selam Steel PLC</div></div><div class="field"><label>Method</label><div class="val">RTGS</div></div></div>
+    <div class="field-row"><div class="field"><label>Amount (ETB)</label><div class="val">Br 194,200</div></div><div class="field"><label>Prepared by</label><div class="val">Leta Girma</div></div></div>
+    <div class="budget-effect">
+      <div class="line"><span>Budget line balance, before</span><b>Br 612,900</b></div>
+      <div class="line"><span>This request</span><b>− Br 194,200</b></div>
+      <div class="line total"><span>Remaining after approval</span><b>Br 418,700</b></div>
+    </div>
+    <h4>Required documents</h4>
+    <div class="checklist" id="checklist">
+      <div class="check-item on" onclick="toggleDoc(this)"><div class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div><span class="lab">Approved purchase order</span></div>
+      <div class="check-item on" onclick="toggleDoc(this)"><div class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div><span class="lab">Supplier proforma</span></div>
+      <div class="check-item" onclick="toggleDoc(this)"><div class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div><span class="lab">Goods receiving note</span><span class="req">Required</span></div>
+      <div class="check-item" onclick="toggleDoc(this)"><div class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div><span class="lab">Supplier tax invoice</span><span class="req">Required</span></div>
+    </div>
+    <div class="gate locked" id="gateStatus">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
+      <span id="gateText">2 of 4 documents attached — routing to Dembi is locked</span>
+    </div>
+  </div>
+  <div class="modal-foot">
+    <button class="btn" onclick="closeModal()">Save as draft</button>
+    <button class="btn primary" id="sendBtn" disabled>Send for approval</button>
+  </div>
+</div>
+
+<script>
+var ROLES = {
+  mesael:   {name:'Mesael',   av:'MS', title:'Owner / CEO'},
+  dembi:    {name:'Dembi',    av:'DG', title:'Deputy GM & Finance Head'},
+  leta:     {name:'Leta',     av:'LG', title:'Operational Finance'},
+  kalkidan: {name:'Kalkidan', av:'KA', title:'Accountant'},
+  yamrot:   {name:'Yamrot',   av:'YB', title:'Billing & Tax'}
+};
+var currentRole = 'leta';
+
+function toggleRoleMenu(force){
+  var btn = document.getElementById('whoBtn');
+  var menu = document.getElementById('roleMenu');
+  var open = typeof force === 'boolean' ? force : !menu.classList.contains('on');
+  menu.classList.toggle('on', open);
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+document.addEventListener('click', function(e){
+  var who = document.getElementById('whoBtn');
+  if(!who.contains(e.target)) toggleRoleMenu(false);
+});
+
+function switchRole(id, evt){
+  if(evt) evt.stopPropagation();
+  if(!ROLES[id]) return;
+  currentRole = id;
+  var r = ROLES[id];
+  document.getElementById('whoAvatar').textContent = r.av;
+  document.getElementById('whoName').textContent = r.name;
+  document.getElementById('whoRole').textContent = r.title;
+  document.querySelectorAll('.role-item').forEach(function(el){ el.classList.toggle('active', el.dataset.role === id); });
+  toggleRoleMenu(false);
+  document.getElementById('sideRoleName').textContent = r.name;
+  document.getElementById('sideRoleTitle').textContent = r.title;
+  document.querySelectorAll('.side-nav').forEach(function(nav){ nav.classList.toggle('on', nav.dataset.roleNav === id); });
+  navigate(id, 'dashboard');
+  closeSidebarMobile();
+}
+
+function navigate(role, pageId){
+  if(role !== currentRole) return;
+  var target = document.getElementById(role + '-' + pageId);
+  if(!target) return;
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('on'); });
+  target.classList.add('on');
+  document.querySelectorAll('.navbtn').forEach(function(b){ b.classList.toggle('on', b.dataset.page === role + '-' + pageId); });
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sideScrim').classList.toggle('on');
+}
+function closeSidebarMobile(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sideScrim').classList.remove('on');
+}
+document.addEventListener('DOMContentLoaded', function(){
+  var btn = document.querySelector('.navbtn[data-page="leta-dashboard"]');
+  if(btn) btn.classList.add('on');
+});
+
+function showToast(html, ms){
+  var wrap = document.getElementById('toastWrap');
+  var t = document.createElement('div');
+  t.className = 'toast';
+  t.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg><div>' + html + '</div>';
+  wrap.appendChild(t);
+  setTimeout(function(){ t.style.transition='all .22s'; t.style.opacity='0'; t.style.transform='translateY(6px)'; setTimeout(function(){ t.remove(); }, 230); }, ms || 4000);
+}
+
+function approveItem(btn, code){
+  var row = btn.closest('.row');
+  row.classList.add('done');
+  updateDots();
+  showToast('<b>Approved</b> — ' + code + ' is cleared and moves to payment automatically.');
+}
+function declineItem(btn, code){
+  var row = btn.closest('.row');
+  row.classList.add('done');
+  updateDots();
+  showToast('<b>Sent back</b> — ' + code + ' returns with a note requested before resubmission.');
+}
+function updateDots(){
+  var m = document.getElementById('mesael-approvals');
+  var d = document.getElementById('dembi-approvals');
+  var mOpen = m ? m.querySelectorAll('.row:not(.done) .qi-actions').length : 0;
+  var dOpen = d ? d.querySelectorAll('.row:not(.done) .qi-actions').length : 0;
+  var dm = document.getElementById('dotMesael'); if(dm) dm.style.display = mOpen ? '' : 'none';
+  var dd = document.getElementById('dotDembi'); if(dd) dd.style.display = dOpen ? '' : 'none';
+}
+
+function filterVouchers(chip){
+  if(chip){ document.querySelectorAll('.chip').forEach(function(c){ c.classList.remove('on'); }); chip.classList.add('on'); }
+  var activeChip = document.querySelector('.chip.on');
+  var active = activeChip ? activeChip.dataset.filter : 'all';
+  var qEl = document.getElementById('voucherSearch');
+  var q = qEl ? qEl.value.toLowerCase().trim() : '';
+  var any = false;
+  document.querySelectorAll('#voucherGrid .vcard').forEach(function(v){
+    var statusOk = (active === 'all') || (v.dataset.status === active);
+    var searchOk = !q || v.textContent.toLowerCase().indexOf(q) !== -1;
+    var show = statusOk && searchOk;
+    v.style.display = show ? '' : 'none';
+    if(show) any = true;
+  });
+  var empty = document.getElementById('voucherEmpty');
+  if(empty) empty.style.display = any ? 'none' : 'block';
+}
+
+function selectVendor(name){
+  showToast('<b>' + name + '</b> selected — carried into a new payment voucher as the payee.');
+  setTimeout(function(){ openModal(); }, 400);
+}
+function issueReceipt(){ showToast('<b>Receipt issued</b> — OR-2026-0332, tied to the Base course milestone, posted to the ledger.'); }
+function togglePreview(){
+  var p = document.getElementById('declarePreview');
+  var btn = document.getElementById('previewBtn');
+  var show = p.style.display === 'none';
+  p.style.display = show ? 'block' : 'none';
+  btn.textContent = show ? 'Hide preview' : 'Preview declaration';
+}
+function markReviewed(btn){
+  if(btn.disabled) return;
+  btn.textContent = 'Reviewed ✓'; btn.disabled = true;
+  var dot = document.getElementById('dotYamrot'); if(dot) dot.style.display = 'none';
+  showToast('<b>Marked reviewed</b> — the July VAT declaration is ready to submit.');
+}
+function exportPL(){ showToast('<b>Exported</b> — Profit &amp; Loss (YTD) saved as PDF.'); }
+function runExport(btn){
+  if(btn.disabled) return;
+  btn.disabled = true;
+  var original = btn.textContent;
+  btn.textContent = 'Exporting…';
+  setTimeout(function(){
+    ['augRow','augRowD'].forEach(function(id){
+      var row = document.getElementById(id);
+      if(!row) return;
+      row.querySelector('.t1').textContent = 'August entries';
+      row.querySelector('.t2').textContent = '94 journal lines · exported 06 Aug 2026';
+      var tag = row.querySelector('.tag');
+      tag.className = 'tag good'; tag.textContent = 'Synced';
+    });
+    btn.textContent = original; btn.disabled = false;
+    showToast('<b>Staged export complete</b> — 94 journal lines sent to Peachtree for August.');
+  }, 1200);
+}
+
+function openModal(){ document.getElementById('scrim').classList.add('on'); document.getElementById('modal').classList.add('on'); }
+function closeModal(){ document.getElementById('scrim').classList.remove('on'); document.getElementById('modal').classList.remove('on'); }
+function toggleDoc(el){
+  el.classList.toggle('on');
+  var total = document.querySelectorAll('#checklist .check-item').length;
+  var done = document.querySelectorAll('#checklist .check-item.on').length;
+  var gate = document.getElementById('gateStatus');
+  var text = document.getElementById('gateText');
+  var sendBtn = document.getElementById('sendBtn');
+  if(done === total){
+    gate.className = 'gate ready';
+    gate.querySelector('svg').innerHTML = '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>';
+    text.innerHTML = 'All ' + total + ' documents attached — ready to send to Dembi';
+    sendBtn.disabled = false;
+  } else {
+    gate.className = 'gate locked';
+    gate.querySelector('svg').innerHTML = '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/>';
+    text.innerHTML = done + ' of ' + total + ' documents attached — routing to Dembi is locked';
+    sendBtn.disabled = true;
+  }
+}
+document.getElementById('sendBtn').addEventListener('click', function(){
+  if(this.disabled) return;
+  closeModal();
+  showToast('<b>Sent for approval</b> — PV-2026-00491 is now in Dembi\'s queue.');
+});
+</script>
+</body>
+</html>
