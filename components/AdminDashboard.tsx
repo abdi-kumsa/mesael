@@ -350,7 +350,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ activeTab, vouch
               <div key={proj.id} className="p-6 rounded-2xl border border-gray-200/60 hover:border-gray-300 transition-colors bg-gray-50/30">
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <div className="text-[11px] font-bold text-gray-400 mb-1">{proj.id}</div>
+                    <div className="text-[11px] font-bold text-gray-400 mb-1">{proj.code}</div>
                     <h3 className="text-lg font-bold text-[#15181e]">{proj.name}</h3>
                   </div>
                   <span className="px-2 py-1 rounded-md bg-green-100 text-green-800 text-[10px] font-bold uppercase tracking-wider">
