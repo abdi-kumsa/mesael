@@ -156,6 +156,26 @@ async function main() {
     },
   });
 
+  const awashProject = await prisma.project.upsert({
+    where: { code: 'PRJ-AWASH' },
+    update: {},
+    create: {
+      code: 'PRJ-AWASH',
+      name: 'Awash Bridge Construction',
+      client: 'Federal Roads Authority',
+    },
+  });
+
+  const hawassaProject = await prisma.project.upsert({
+    where: { code: 'PRJ-HAWASSA' },
+    update: {},
+    create: {
+      code: 'PRJ-HAWASSA',
+      name: 'Hawassa Industrial Park',
+      client: 'IPDC',
+    },
+  });
+
   // 3. Create Cost Codes (WBS)
   const cc2201 = await prisma.costCode.upsert({
     where: { code: 'CC-2201' },
@@ -180,7 +200,32 @@ async function main() {
       committed: 800000,
     },
   });
-  // 4. Create Supplier
+
+  const cc5001 = await prisma.costCode.upsert({
+    where: { code: 'CC-5001' },
+    update: {},
+    create: {
+      code: 'CC-5001',
+      name: 'Concrete Works',
+      projectId: awashProject.id,
+      budget: 12000000,
+      committed: 500000,
+    },
+  });
+
+  const cc6001 = await prisma.costCode.upsert({
+    where: { code: 'CC-6001' },
+    update: {},
+    create: {
+      code: 'CC-6001',
+      name: 'Structural Steel',
+      projectId: hawassaProject.id,
+      budget: 25000000,
+      committed: 1000000,
+    },
+  });
+
+  // 4. Create Suppliers
   const supplier1 = await prisma.supplier.upsert({
     where: { tin: '0012938475' },
     update: {},
@@ -190,6 +235,74 @@ async function main() {
       vatStatus: 'REGISTERED',
       bankDetails: JSON.stringify({ bank: 'CBE', account: '1000123456789' }),
       status: 'APPROVED'
+    }
+  });
+
+  const supplier2 = await prisma.supplier.upsert({
+    where: { tin: '0098765432' },
+    update: {},
+    create: {
+      legalName: 'Ethio Steel Trading PLC',
+      tin: '0098765432',
+      vatStatus: 'REGISTERED',
+      bankDetails: JSON.stringify({ bank: 'Awash', account: '1000987654321' }),
+      status: 'APPROVED'
+    }
+  });
+
+  // 5. Create Purchase Requisition & Purchase Order
+  const pr1 = await prisma.purchaseRequisition.upsert({
+    where: { code: 'PR-2026-0001' },
+    update: {},
+    create: {
+      code: 'PR-2026-0001',
+      description: 'Reinforcement steel bars 16mm',
+      status: 'ORDERED',
+      projectId: boleProject.id,
+      costCodeId: cc2201.id,
+      preparedById: firehiwot.id,
+      items: {
+        create: [
+          { description: 'Steel Bar 16mm', quantity: 500, unit: 'kg' },
+          { description: 'Binding Wire', quantity: 50, unit: 'rolls' },
+        ],
+      },
+    }
+  });
+
+  const po1 = await prisma.purchaseOrder.upsert({
+    where: { code: 'PO-2026-0001' },
+    update: {},
+    create: {
+      code: 'PO-2026-0001',
+      status: 'ISSUED',
+      requisitionId: pr1.id,
+      supplierId: supplier2.id,
+      preparedById: samuel.id,
+      items: {
+        create: [
+          { description: 'Steel Bar 16mm', quantity: 500, unitPrice: 95, unit: 'kg' },
+          { description: 'Binding Wire', quantity: 50, unitPrice: 120, unit: 'rolls' },
+        ],
+      },
+    }
+  });
+
+  // 6. Create Subcontract (SOP - Schedule of Prices / Subcontract)
+  const sub1 = await prisma.subcontract.upsert({
+    where: { code: 'SUB-2026-0001' },
+    update: {},
+    create: {
+      code: 'SUB-2026-0001',
+      status: 'ACTIVE',
+      vendorId: supplier1.id,
+      projectId: awashProject.id,
+      costCodeId: cc5001.id,
+      preparedById: firehiwot.id,
+      contractValue: 5000000,
+      advancePercent: 20,
+      retentionPercent: 5,
+      advancePaid: 1000000,
     }
   });
 
