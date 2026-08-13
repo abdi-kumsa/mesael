@@ -123,8 +123,8 @@ export const SubcontractDesk = ({ onToast }: { onToast: (t: string, m: string, s
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
+        <div className="fixed inset-0 z-[200] flex items-center justify-end bg-black/50 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white w-full max-w-lg h-full overflow-y-auto shadow-2xl flex flex-col border-l border-gray-200 animate-slide-in-right">
             <div className="p-6 border-b border-gray-100 bg-[#faf9f8] flex justify-between items-center">
               <div>
                 <h3 className="font-serif text-xl font-semibold text-[#15181e]">Register Subcontract</h3>
@@ -135,7 +135,7 @@ export const SubcontractDesk = ({ onToast }: { onToast: (t: string, m: string, s
               </button>
             </div>
             
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-6 space-y-4 flex-1 flex flex-col">
               <div>
                 <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Subcontractor (Vendor)</label>
                 <select 

@@ -286,8 +286,8 @@ export const KalkidanDashboard: React.FC<KalkidanDashboardProps> = ({
 
       {/* Release Payment Modal */}
       {releaseModalOpen && selectedVoucher && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-scale-up">
+        <div className="fixed inset-0 z-[200] flex items-center justify-end bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white w-full max-w-lg h-full overflow-y-auto shadow-2xl flex flex-col border-l border-gray-200 animate-slide-in-right">
             <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-[#faf9f8]">
               <div>
                 <h3 className="font-serif text-xl font-bold text-[#15181e]">Release Payment</h3>
@@ -298,7 +298,7 @@ export const KalkidanDashboard: React.FC<KalkidanDashboardProps> = ({
               </button>
             </div>
             
-            <form onSubmit={handleReleaseSubmit} className="p-6 space-y-5">
+            <form onSubmit={handleReleaseSubmit} className="p-6 space-y-5 flex-1 flex flex-col">
               <div className="p-4 rounded-xl bg-gray-50 border border-gray-200 text-sm">
                 <div className="flex justify-between font-bold text-[#15181e]">
                   <span>{selectedVoucher.payee}</span>
